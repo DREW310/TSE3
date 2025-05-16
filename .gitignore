@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environment
+venv/
+
+# Django stuff
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+*.env
+
+# Pytest
+.pytest_cache/
+
+# Migrations (optional, if you want to ignore them)
+# */migrations/*
+# !*/migrations/__init__.py 

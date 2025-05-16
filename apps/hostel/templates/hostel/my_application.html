@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}My Hostel Application - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="form-container">
+            <h2 class="text-center mb-4">My Hostel Application</h2>
+            {% if application %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p><strong>Room Type:</strong> {{ application.get_room_type_display }}</p>
+                        <p><strong>Semester:</strong> {{ application.semester }}</p>
+                        <p><strong>Status:</strong> 
+                            {% if application.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif application.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </p>
+                        <p class="text-muted"><strong>Date Applied:</strong> {{ application.date_applied|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    You have not applied for hostel accommodation yet.<br>
+                    <a href="{% url 'hostel:apply' %}" class="btn btn-primary mt-3">Apply Now</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

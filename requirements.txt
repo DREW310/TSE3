@@ -1,0 +1,6 @@
+Django==4.2.7  # Main web framework
+psycopg2-binary==2.9.9  # PostgreSQL adapter
+Pillow==10.1.0  # For handling image uploads
+python-dotenv==1.0.0  # For environment variables
+django-crispy-forms==2.1  # For better form rendering
+crispy-bootstrap5==0.7  # Bootstrap 5 template pack for crispy forms 

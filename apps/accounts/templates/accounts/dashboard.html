@@ -1,0 +1,131 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Dashboard - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Welcome message and quick actions -->
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h3>Welcome, {{ user.username }}!</h3>
+                <p class="text-muted">
+                    {% if user.is_student %}
+                        Student ID: {{ user.student_id }}
+                    {% else %}
+                        Hostel Administrator
+                    {% endif %}
+                </p>
+                
+                {% if user.is_student and not user.is_profile_complete %}
+                    <div class="alert alert-warning">
+                        Please complete your profile information to access all features.
+                        <a href="{% url 'accounts:profile' %}" class="alert-link">Complete Profile</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% if user.is_student %}
+        <!-- Student Dashboard Content -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Hostel Application Status</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the hostel application feature -->
+                    <p class="text-muted">No active applications found.</p>
+                    <a href="#" class="btn btn-primary">Apply for Hostel</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Room Information</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the room management feature -->
+                    <p class="text-muted">No room currently assigned.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Payment Status</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the payment feature -->
+                    <p class="text-muted">No pending payments.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Maintenance Requests</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the maintenance feature -->
+                    <p class="text-muted">No maintenance requests found.</p>
+                    <a href="#" class="btn btn-warning text-dark">Submit Request</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Admin Dashboard Content -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Pending Applications</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the admin features -->
+                    <p class="text-muted">No pending applications.</p>
+                    <a href="#" class="btn btn-primary">View All Applications</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Room Management</h5>
+                </div>
+                <div class="card-body">
+                    <!-- This will be populated when we implement the room management feature -->
+                    <p class="text-muted">Room occupancy information will appear here.</p>
+                    <a href="#" class="btn btn-success">Manage Rooms</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="#" class="btn btn-outline-primary d-block">Verify Payments</a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="#" class="btn btn-outline-warning d-block">View Maintenance Requests</a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="#" class="btn btn-outline-info d-block">Post Announcement</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
