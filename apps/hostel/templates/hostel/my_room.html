@@ -1,0 +1,21 @@
+{% extends 'accounts/base.html' %}
+{% block title %}My Room - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Room Assignment</h2>
+    {% if assignment %}
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Room Number:</strong> {{ assignment.room.room_number }}</p>
+            <p><strong>Room Type:</strong> {{ assignment.room.get_room_type_display }}</p>
+            <p><strong>Assignment Period:</strong> {{ assignment.start_date }} to {{ assignment.end_date }}</p>
+            <p><strong>Payment Status:</strong> <span class="badge {% if assignment.payment_status == 'paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ assignment.get_payment_status_display }}</span></p>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">You do not have an active room assignment yet.</div>
+    {% endif %}
+    <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %} 

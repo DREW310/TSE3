@@ -19,8 +19,8 @@ urlpatterns = [
     # Hostel management features (student applications, etc.)
     path('hostel/', include('apps.hostel.urls')),
     
-    # Redirect root URL to dashboard
-    path('', RedirectView.as_view(pattern_name='accounts:dashboard'), name='home'),
+    # Redirect root URL to login page
+    path('', RedirectView.as_view(pattern_name='accounts:login'), name='home'),
 ]
 
 # Serve media files in development

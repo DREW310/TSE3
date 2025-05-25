@@ -1,0 +1,73 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Manage Maintenance Request{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Manage Maintenance Request</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5>Request Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">Student:</dt>
+                            <dd class="col-sm-9">{{ maintenance_request.student.get_full_name }}</dd>
+
+                            <dt class="col-sm-3">Type:</dt>
+                            <dd class="col-sm-9">{{ maintenance_request.get_request_type_display }}</dd>
+
+                            <dt class="col-sm-3">Room:</dt>
+                            <dd class="col-sm-9">{{ maintenance_request.room_number }}</dd>
+
+                            <dt class="col-sm-3">Priority:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge {% if maintenance_request.priority == 'urgent' %}bg-danger
+                                                 {% elif maintenance_request.priority == 'high' %}bg-warning
+                                                 {% elif maintenance_request.priority == 'medium' %}bg-info
+                                                 {% else %}bg-secondary{% endif %}">
+                                    {{ maintenance_request.get_priority_display }}
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-3">Description:</dt>
+                            <dd class="col-sm-9">{{ maintenance_request.description }}</dd>
+
+                            <dt class="col-sm-3">Date Submitted:</dt>
+                            <dd class="col-sm-9">{{ maintenance_request.date_submitted|date:"M d, Y H:i" }}</dd>
+                        </dl>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Update Status</label>
+                            <select name="status" id="status" class="form-select">
+                                {% for status_value, status_label in maintenance_request.STATUS_CHOICES %}
+                                <option value="{{ status_value }}" {% if status_value == maintenance_request.status %}selected{% endif %}>
+                                    {{ status_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="staff_notes" class="form-label">Staff Notes</label>
+                            <textarea name="staff_notes" id="staff_notes" class="form-control" rows="4">{{ maintenance_request.staff_notes|default:'' }}</textarea>
+                            <div class="form-text">Add any notes or comments about this request.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Request</button>
+                            <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-secondary">Back to All Requests</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

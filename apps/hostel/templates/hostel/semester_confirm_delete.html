@@ -1,0 +1,23 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Delete Semester - MMU Hostel Management{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">Delete Semester</h2>
+    {% if has_applications %}
+    <div class="alert alert-danger">
+        This semester cannot be deleted because there are hostel applications associated with it.<br>
+        <a href="{% url 'hostel:list_semesters' %}" class="btn btn-secondary mt-2">Back to Semester List</a>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        Are you sure you want to deactivate (soft delete) the semester: <strong>{{ semester.name }}</strong>?<br>
+        This will set the semester as inactive and it will not be available for new applications.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Deactivate</button>
+        <a href="{% url 'hostel:list_semesters' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+    {% endif %}
+</div>
+{% endblock %} 

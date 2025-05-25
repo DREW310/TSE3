@@ -1,0 +1,29 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Assign Room - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Assign Room</h2>
+    <div class="card mb-4">
+        <div class="card-header">
+            Student Application Details
+        </div>
+        <div class="card-body">
+            <p><strong>Student Name:</strong> {{ application.student.get_full_name|default:application.student.username }}</p>
+            <p><strong>Student ID:</strong> {{ application.student.student_id }}</p>
+            <p><strong>Room Type Requested:</strong> {{ application.get_room_type_display }}</p>
+            <p><strong>Trimester:</strong> {{ application.semester }}</p>
+            <p><strong>Requested Start Date:</strong> {{ application.start_date|date:"F j, Y" }}</p>
+            <p><strong>Requested End Date:</strong> {{ application.end_date|date:"F j, Y" }}</p>
+        </div>
+    </div>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-grid gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">Assign Room</button>
+            <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

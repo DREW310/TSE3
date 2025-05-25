@@ -7,12 +7,12 @@ class CustomUserAdmin(UserAdmin):
     # Fields to display in the user list
     list_display = (
         'username', 'email', 'student_id', 'user_type',
-        'is_profile_complete', 'is_staff'
+        'is_staff'
     )
     
     # Fields to filter users by
     list_filter = (
-        'user_type', 'is_profile_complete', 'is_staff',
+        'user_type', 'is_staff',
         'is_superuser', 'is_active'
     )
     
@@ -33,7 +33,8 @@ class CustomUserAdmin(UserAdmin):
         ('Personal Info', {
             'fields': (
                 'first_name', 'last_name', 'email',
-                'student_id', 'phone_number', 'emergency_contact'
+                'student_id', 'phone_number', 'emergency_contact',
+                'student_type'
             )
         }),
         ('Permissions', {

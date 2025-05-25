@@ -1,0 +1,15 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Delete Hostel Application{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">Delete Hostel Application</h2>
+    <div class="alert alert-warning">
+        Are you sure you want to delete the application for <strong>{{ application.student.get_full_name }}</strong> ({{ application.student.student_id }})?
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %} 

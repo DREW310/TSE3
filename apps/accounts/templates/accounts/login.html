@@ -13,9 +13,10 @@
                 
                 <!-- Username field -->
                 <div class="mb-3">
-                    <label for="id_username" class="form-label">Username</label>
+                    <label for="id_username" class="form-label">Student ID</label>
                     <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
                            id="id_username" required>
+                    <small class="form-text text-muted">Enter your Student ID (e.g., 1211109458)</small>
                     {% if form.username.errors %}
                         <div class="invalid-feedback">
                             {{ form.username.errors|join:", " }}

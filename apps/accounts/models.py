@@ -4,55 +4,39 @@ from django.db import models
 # Custom User model that extends Django's built-in AbstractUser
 # This allows us to add our own fields while keeping all the good stuff Django provides
 class User(AbstractUser):
-    # Constants for user types - makes it easy to understand what type of user we're dealing with
+    # User types
     STUDENT = 'student'
     STAFF = 'staff'
     ADMIN = 'admin'
     
-    # Choices for user_type field - this creates a dropdown in forms
     USER_TYPE_CHOICES = [
         (STUDENT, 'Student'),
         (STAFF, 'Staff'),
         (ADMIN, 'Admin'),
     ]
+
+    # Student types
+    STUDENT_TYPE_CHOICES = [
+        ('local', 'Local Student'),
+        ('international', 'International Student'),
+    ]
+
+    # Gender choices
+    GENDER_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+    ]
     
-    # Custom fields we need for our hostel system
-    user_type = models.CharField(
-        max_length=10,
-        choices=USER_TYPE_CHOICES,
-        default=STUDENT,  # Most users will be students
-        help_text="Type of user account"  # This shows up in the admin panel
-    )
-    
-    # Student-specific fields
-    student_id = models.CharField(
-        max_length=20,
-        unique=True,
-        null=True,
-        blank=True,  # Not required for admin users
-        help_text="MMU Student ID number"
-    )
-    
-    phone_number = models.CharField(
-        max_length=15,
-        null=True,
-        blank=True,
-        help_text="Contact phone number"
-    )
-    
-    # This helps us know if a student has completed their profile
-    is_profile_complete = models.BooleanField(
-        default=False,
-        help_text="Whether the user has completed their profile information"
-    )
-    
-    # This is useful for sending important notifications
-    emergency_contact = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        help_text="Emergency contact information"
-    )
+    # Basic fields
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default=STUDENT)
+    student_type = models.CharField(max_length=15, choices=STUDENT_TYPE_CHOICES, null=True, blank=True)
+    student_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    phone_number = models.CharField(max_length=15, null=True, blank=True)
+    emergency_contact = models.CharField(max_length=100, null=True, blank=True)
+    gender = models.CharField(max_length=6, choices=GENDER_CHOICES, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
+    home_address = models.CharField(max_length=255, null=True, blank=True)
+    id_number = models.CharField(max_length=20, null=True, blank=True, help_text='IC No. or Passport No.')
     
     def __str__(self):
         """
@@ -81,3 +65,17 @@ class User(AbstractUser):
         Usage: if user.is_staff_user():
         """
         return self.user_type == self.STAFF
+
+    def is_local_student(self):
+        """
+        Quick way to check if user is a local student
+        Usage: if user.is_local_student():
+        """
+        return self.user_type == self.STUDENT and self.student_type == 'local'
+
+    def is_international_student(self):
+        """
+        Quick way to check if user is an international student
+        Usage: if user.is_international_student():
+        """
+        return self.user_type == self.STUDENT and self.student_type == 'international'

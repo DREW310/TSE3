@@ -1,0 +1,29 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Manage Application - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Manage Hostel Application</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <p><strong>Student Name:</strong> {{ application.student.get_full_name }}</p>
+            <p><strong>Student ID:</strong> {{ application.student.student_id }}</p>
+            <p><strong>Room Type:</strong> {{ application.get_room_type_display }}</p>
+            <p><strong>Trimester:</strong> {{ application.semester.name }}</p>
+            <p><strong>Status:</strong> <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ application.get_status_display }}</span></p>
+            <p><strong>Date Applied:</strong> {{ application.date_applied|date:"M d, Y H:i" }}</p>
+        </div>
+    </div>
+    {% if application.status == 'pending' %}
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="action" value="approve" class="btn btn-success">Approve</button>
+        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+        <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+    {% else %}
+    <div class="alert alert-info">This application has already been {{ application.get_status_display|lower }}.</div>
+    <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Back to Applications</a>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,15 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Delete Room - MMU Hostel Management{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-danger">Delete Room</h2>
+    <div class="alert alert-warning">
+        Are you sure you want to delete room <strong>{{ room.room_number }}</strong>?
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="{% url 'hostel:list_rooms' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %} 

@@ -1,0 +1,45 @@
+{% extends 'accounts/base.html' %}
+{% load hostel_tags %}
+{% block title %}Manage Rooms - MMU Hostel Management{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Manage Rooms</h2>
+    <div class="mb-3">
+        <a href="{% url 'hostel:add_room' %}" class="btn btn-primary">Add New Room</a>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    {% if rooms %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Room Number</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Total Capacity</th>
+                    <th>Remaining Capacity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for room in rooms %}
+                <tr>
+                    <td>{{ room.room_number }}</td>
+                    <td>{{ room.get_room_type_display }}</td>
+                    <td>{{ room.get_status_display }}</td>
+                    <td>{{ room.capacity }}</td>
+                    <td>{{ room.capacity|subtract:room.get_occupancy_count }}</td>
+                    <td>
+                        <a href="{% url 'hostel:edit_room' room.id %}" class="btn btn-sm btn-info">Edit</a>
+                        <a href="{% url 'hostel:delete_room' room.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this room?');">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="alert alert-info">No rooms found.</div>
+    {% endif %}
+</div>
+{% endblock %} 

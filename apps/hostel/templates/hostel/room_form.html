@@ -1,0 +1,15 @@
+{% extends 'accounts/base.html' %}
+{% block title %}{{ action }} Room - MMU Hostel Management{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{{ action }} Room</h2>
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-grid gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">{{ action }} Room</button>
+            <a href="{% url 'hostel:list_rooms' %}" class="btn btn-secondary">Back to Rooms</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

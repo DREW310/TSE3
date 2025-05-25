@@ -17,12 +17,11 @@ def student_register(request):
         # Create form with submitted data
         form = StudentRegistrationForm(request.POST)
         if form.is_valid():
-            # Save the user and log them in
-            user = form.save()
-            login(request, user)
+            # Save the user but do NOT log them in
+            form.save()
             # Show success message
-            messages.success(request, 'Registration successful! Welcome to MMU Hostel Management System.')
-            return redirect('accounts:dashboard')
+            messages.success(request, 'Registration successful! Please log in with your new credentials.')
+            return redirect('accounts:login')
     else:
         # Show empty form for GET request
         form = StudentRegistrationForm()
@@ -74,20 +73,47 @@ def student_dashboard(request):
     Student dashboard view
     Shows overview of student's hostel status, applications, etc.
     """
-    # Get all the information we need to show on dashboard
+    from apps.hostel.models import RoomAssignment, Payment
+    
+    # Find the latest room assignment linked to an approved application
+    latest_assignment = RoomAssignment.objects.filter(
+        student=request.user,
+        # Check if the related application is approved using the new foreign key
+        hostel_application__status='approved'
+    ).order_by('-date_assigned').first()
+
+    # Fetch payments related to the latest assignment
+    payments = []
+    if latest_assignment:
+        payments = Payment.objects.filter(room_assignment=latest_assignment).order_by('-date_paid')
+
+    # Count active maintenance requests
+    active_maintenance_requests_count = request.user.maintenance_requests.filter(
+        status__in=['pending', 'in_progress']
+    ).count()
+
     context = {
         'user': request.user,
-        # We'll add more context data here when we create other apps
-        # Like hostel application status, room details, etc.
+        'hostel_applications': request.user.hostel_applications.all(),
+        'maintenance_requests': request.user.maintenance_requests.all(),
+        'active_maintenance_requests_count': active_maintenance_requests_count,
+        'latest_assignment': latest_assignment,
+        'payments': payments,
     }
     return render(request, 'accounts/dashboard.html', context)
 
+@login_required
+@user_passes_test(lambda u: u.user_type in ['staff', 'admin'])
 def staff_dashboard(request):
     """
     Staff dashboard view
     Shows overview for staff users
     """
+    from apps.hostel.models import HostelApplication, MaintenanceRequest
+    
     context = {
         'user': request.user,
+        'hostel_applications': HostelApplication.objects.all(),
+        'maintenance_requests': MaintenanceRequest.objects.all(),
     }
-    return render(request, 'accounts/staff_dashboard.html', context)
+    return render(request, 'accounts/dashboard.html', context)

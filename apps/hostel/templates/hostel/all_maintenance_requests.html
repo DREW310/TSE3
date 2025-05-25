@@ -1,0 +1,71 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}All Maintenance Requests{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">All Maintenance Requests</h4>
+                </div>
+                <div class="card-body">
+                    {% if requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Student</th>
+                                        <th>Type</th>
+                                        <th>Room</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Assigned To</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in requests %}
+                                    <tr>
+                                        <td>{{ request.date_submitted|date:"M d, Y H:i" }}</td>
+                                        <td>{{ request.student.get_full_name }}</td>
+                                        <td>{{ request.get_request_type_display }}</td>
+                                        <td>{{ request.room_number }}</td>
+                                        <td>
+                                            <span class="badge {% if request.priority == 'urgent' %}bg-danger
+                                                             {% elif request.priority == 'high' %}bg-warning
+                                                             {% elif request.priority == 'medium' %}bg-info
+                                                             {% else %}bg-secondary{% endif %}">
+                                                {{ request.get_priority_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if request.status == 'completed' %}bg-success
+                                                             {% elif request.status == 'in_progress' %}bg-primary
+                                                             {% elif request.status == 'cancelled' %}bg-danger
+                                                             {% else %}bg-warning{% endif %}">
+                                                {{ request.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ request.assigned_to.get_full_name|default:"Not assigned" }}</td>
+                                        <td>
+                                            <a href="{% url 'hostel:manage_maintenance_request' request.id %}" class="btn btn-sm btn-primary">Manage</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No maintenance requests found.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

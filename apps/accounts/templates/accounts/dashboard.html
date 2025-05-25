@@ -1,67 +1,133 @@
 {% extends 'accounts/base.html' %}
+{% load hostel_tags %}
 
 {% block title %}Dashboard - MMU Hostel Management{% endblock %}
 
 {% block content %}
-<div class="row">
-    <!-- Welcome message and quick actions -->
-    <div class="col-md-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <h3>Welcome, {{ user.username }}!</h3>
-                <p class="text-muted">
-                    {% if user.is_student %}
-                        Student ID: {{ user.student_id }}
-                    {% else %}
-                        Hostel Administrator
-                    {% endif %}
-                </p>
-                
-                {% if user.is_student and not user.is_profile_complete %}
-                    <div class="alert alert-warning">
-                        Please complete your profile information to access all features.
-                        <a href="{% url 'accounts:profile' %}" class="alert-link">Complete Profile</a>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+<div class="container mt-4">
+    <h2 class="mb-4">Welcome, {{ user.get_full_name|default:user.username }}!</h2>
     
-    {% if user.is_student %}
+    <div class="row">
+    {% if user.user_type == 'student' %}
         <!-- Student Dashboard Content -->
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Hostel Application Status</h5>
+                    <h5 class="card-title mb-0">Hostel Application</h5>
                 </div>
                 <div class="card-body">
-                    <!-- This will be populated when we implement the hostel application feature -->
-                    <p class="text-muted">No active applications found.</p>
-                    <a href="#" class="btn btn-primary">Apply for Hostel</a>
+                    {% if user.hostel_applications.exists %}
+                        {% with application=user.hostel_applications.first %}
+                            <p><strong>Status:</strong> 
+                                <span class="badge {% if application.status == 'approved' %}bg-success
+                                                 {% elif application.status == 'rejected' %}bg-danger
+                                                 {% else %}bg-warning{% endif %}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>Room Type:</strong> {{ application.get_room_type_display }}</p>
+                            <p><strong>Semester:</strong> {{ application.semester }}</p>
+                            <p><strong>Date Applied:</strong> {{ application.date_applied|date:"M d, Y" }}</p>
+                        {% endwith %}
+                    {% else %}
+                        <p class="text-muted">You haven't applied for hostel accommodation yet.</p>
+                        <a href="{% url 'hostel:apply' %}" class="btn btn-primary">Apply Now</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
         
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">Room Information</h5>
-                </div>
-                <div class="card-body">
-                    <!-- This will be populated when we implement the room management feature -->
-                    <p class="text-muted">No room currently assigned.</p>
-                </div>
-            </div>
-        </div>
-        
+        {% if latest_assignment %}
         <div class="col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">Payment Status</h5>
+                    <h5 class="card-title mb-0">My Room</h5>
                 </div>
                 <div class="card-body">
-                    <!-- This will be populated when we implement the payment feature -->
-                    <p class="text-muted">No pending payments.</p>
+                    <p><strong>Room Number:</strong> {{ latest_assignment.room.room_number }}</p>
+                    <p><strong>Room Type:</strong> {{ latest_assignment.room.get_room_type_display }}</p>
+                    <p><strong>Occupancy Period:</strong> {{ latest_assignment.start_date|date:"M d, Y" }} - {{ latest_assignment.end_date|date:"M d, Y" }}</p>
+                    <a href="{% url 'hostel:my_room' %}" class="btn btn-success">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Payment Details</h5>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        {% with latest_payment=payments.first %}
+                            {% if latest_payment.status == 'paid' %}
+                                <p><strong>Status:</strong> <span class="badge bg-success">Paid</span></p>
+                                <p><strong>Amount:</strong> RM{{ latest_payment.amount|floatformat:2 }}</p>
+                                <p class="text-muted">Payment received on {{ latest_payment.date_paid|date:"M d, Y" }}.</p>
+                            {% else %}
+                                <p><strong>Status:</strong> <span class="badge bg-warning">Pending</span></p>
+                                <p><strong>Amount Due:</strong> RM{{ latest_payment.amount|floatformat:2 }}</p>
+                                <p class="text-muted">Please proceed to the hostel counter to make your payment in cash.</p>
+                                <p class="text-muted">Remember to mention your Student ID and Room Number.</p>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <p class="text-muted">No payment records found for this assignment.</p>
+                        <p class="text-muted">Please proceed to the hostel counter to make your payment in cash once room is assigned.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Maintenance Requests</h5>
+                </div>
+                <div class="card-body">
+                    {% with requests=user.maintenance_requests.all %}
+                        {% if requests %}
+                            <p><strong>Active Requests:</strong> {{ active_maintenance_requests_count }}</p>
+                            <p><strong>Latest Request Date:</strong> {{ requests.first.date_submitted|date:"M d, Y" }}</p>
+                            <a href="{% url 'hostel:my_maintenance_requests' %}" class="btn btn-warning text-dark">View All Requests</a>
+                        {% else %}
+                            <p class="text-muted">No maintenance requests found.</p>
+                        {% endif %}
+                        {# Assuming maintenance requests are tied to having an assignment #}
+                        <a href="{% url 'hostel:submit_maintenance_request' %}" class="btn btn-warning text-dark mt-2">Submit New Request</a>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        {# Optional: Display a message if no room is assigned yet #}
+        <div class="col-md-12 mb-4">
+             <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Hostel Status</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Your approved application is awaiting room assignment. Please check back later or contact staff for updates.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <!-- Admin/Staff Dashboard Content -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Pending Applications</h5>
+                </div>
+                <div class="card-body">
+                    {% with pending_apps=hostel_applications|filter_status:"pending" %}
+                        {% if pending_apps %}
+                            <p><strong>Pending Applications:</strong> {{ pending_apps.count }}</p>
+                            <a href="{% url 'hostel:all_applications' %}" class="btn btn-primary">View All Applications</a>
+                        {% else %}
+                            <p class="text-muted">No pending applications.</p>
+                        {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -72,23 +138,15 @@
                     <h5 class="card-title mb-0">Maintenance Requests</h5>
                 </div>
                 <div class="card-body">
-                    <!-- This will be populated when we implement the maintenance feature -->
-                    <p class="text-muted">No maintenance requests found.</p>
-                    <a href="#" class="btn btn-warning text-dark">Submit Request</a>
-                </div>
-            </div>
-        </div>
-    {% else %}
-        <!-- Admin Dashboard Content -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Pending Applications</h5>
-                </div>
-                <div class="card-body">
-                    <!-- This will be populated when we implement the admin features -->
-                    <p class="text-muted">No pending applications.</p>
-                    <a href="#" class="btn btn-primary">View All Applications</a>
+                    {% with requests=maintenance_requests %}
+                        {% if requests %}
+                            <p><strong>Active Requests:</strong> {{ requests.count }}</p>
+                            <p><strong>Latest Request:</strong> {{ requests.first.date_submitted|date:"M d, Y" }}</p>
+                            <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-warning text-dark">View All Requests</a>
+                        {% else %}
+                            <p class="text-muted">No maintenance requests found.</p>
+                        {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -101,7 +159,19 @@
                 <div class="card-body">
                     <!-- This will be populated when we implement the room management feature -->
                     <p class="text-muted">Room occupancy information will appear here.</p>
-                    <a href="#" class="btn btn-success">Manage Rooms</a>
+                    <a href="{% url 'hostel:list_rooms' %}" class="btn btn-success">Manage Rooms</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Semester Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Add or edit available semesters for hostel application.</p>
+                    <a href="{% url 'hostel:list_semesters' %}" class="btn btn-info">Manage Semesters</a>
                 </div>
             </div>
         </div>
@@ -114,10 +184,10 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4 mb-2">
-                            <a href="#" class="btn btn-outline-primary d-block">Verify Payments</a>
+                            <a href="{% url 'hostel:all_applications' %}" class="btn btn-outline-primary d-block">Verify Applications</a>
                         </div>
                         <div class="col-md-4 mb-2">
-                            <a href="#" class="btn btn-outline-warning d-block">View Maintenance Requests</a>
+                            <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-outline-warning d-block">View Maintenance Requests</a>
                         </div>
                         <div class="col-md-4 mb-2">
                             <a href="#" class="btn btn-outline-info d-block">Post Announcement</a>
@@ -127,5 +197,6 @@
             </div>
         </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %} 
