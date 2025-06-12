@@ -2,6 +2,72 @@ from django import forms
 from django.utils import timezone
 from .models import HostelApplication, MaintenanceRequest, Semester, RoomAssignment, Room
 
+# Form for semester management
+class SemesterForm(forms.ModelForm):
+    application_start_time = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+        help_text='The exact time applications will open on the start date'
+    )
+    
+    application_end_time = forms.TimeField(
+        required=True,
+        widget=forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+        help_text='The exact time applications will close on the end date'
+    )
+    
+    class Meta:
+        model = Semester
+        fields = ['name', 'start_date', 'end_date', 'application_start', 'application_end', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 2024/2025 Trimester 1'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'end_date': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'application_start': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'application_end': forms.DateInput(attrs={
+                'type': 'date', 
+                'class': 'form-control'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            })
+        }
+        help_texts = {
+            'name': 'Enter a descriptive name for this semester',
+            'start_date': 'The date when the semester begins',
+            'end_date': 'The date when the semester ends',
+            'application_start': 'The date when students can start applying',
+            'application_end': 'The last date students can submit applications',
+            'is_active': 'When checked, applications will be visible to students during the application period. If unchecked, applications will be hidden regardless of dates.'
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        application_start = cleaned_data.get('application_start')
+        application_end = cleaned_data.get('application_end')
+
+        if start_date and end_date and end_date <= start_date:
+            self.add_error('end_date', 'End date must be after start date.')
+        
+        if application_start and application_end and application_end <= application_start:
+            self.add_error('application_end', 'Application end date must be after application start date.')
+        
+        return cleaned_data
+
 # Form for students to apply for hostel accommodation
 class HostelApplicationForm(forms.ModelForm):
     price = forms.CharField(

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Payment Details</h4>
+                        <span class="badge {% if payment.payment_status == 'pending' %}bg-warning{% elif payment.payment_status == 'completed' %}bg-success{% elif payment.payment_status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                            {{ payment.get_payment_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Payment Information -->
+                    <div class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Student Name:</strong> {{ payment.room_assignment.student.get_full_name }}</p>
+                                <p><strong>Student ID:</strong> {{ payment.room_assignment.student.username }}</p>
+                                <p><strong>Amount:</strong> RM{{ payment.amount }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Room:</strong> {{ payment.room_assignment.room.room_number }}</p>
+                                <p><strong>Block:</strong> {{ payment.room_assignment.room.block.name }}</p>
+                                <p><strong>Payment Date:</strong> {{ payment.payment_date|date:"d M Y, h:i A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status Information -->
+                    <div class="mb-4">
+                        <h5>Payment Status Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Status:</strong> {{ payment.get_payment_status_display }}</p>
+                                {% if payment.payment_status == 'pending' %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-info-circle"></i> This payment is pending. Please proceed to the hostel counter to make the payment.
+                                </div>
+                                {% elif payment.payment_status == 'completed' %}
+                                <p><strong>Payment Method:</strong> {{ payment.get_payment_method_display }}</p>
+                                {% elif payment.payment_status == 'refunded' %}
+                                <p><strong>Refund Date:</strong> {{ payment.refund_date|date:"d M Y, h:i A" }}</p>
+                                <p><strong>Refund Reason:</strong> {{ payment.refund_reason }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Verification Information -->
+                    {% if payment.staff_verified %}
+                    <div class="mb-4">
+                        <h5>Payment Verification</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Verified By:</strong> {{ payment.staff_verified.get_full_name }}</p>
+                                <p><strong>Verification Date:</strong> {{ payment.verification_date|date:"d M Y, h:i A" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="mt-4">
+                        {% if payment.payment_status == 'completed' %}
+                        <button onclick="window.print()" class="btn btn-primary">
+                            <i class="fas fa-print"></i> Print Receipt
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'hostel:my_payments' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Payments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+    @media print {
+        .btn, .navbar, .footer {
+            display: none !important;
+        }
+        .card {
+            border: none !important;
+        }
+        .card-body {
+            padding: 0 !important;
+        }
+    }
+</style>
+{% endblock %} 

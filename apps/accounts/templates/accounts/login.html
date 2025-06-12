@@ -8,10 +8,10 @@
         <div class="form-container">
             <h2 class="text-center mb-4">Login to MMU Hostel</h2>
             
-            <form method="post" novalidate>
+            <form method="post" novalidate id="loginForm" onsubmit="return validateForm()">
                 {% csrf_token %}
                 
-                <!-- Username field -->
+                <!-- Student ID field -->
                 <div class="mb-3">
                     <label for="id_username" class="form-label">Student ID</label>
                     <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
@@ -22,6 +22,9 @@
                             {{ form.username.errors|join:", " }}
                         </div>
                     {% endif %}
+                    <div class="invalid-feedback" id="username-error">
+                        Student ID is required
+                    </div>
                 </div>
                 
                 <!-- Password field -->
@@ -34,6 +37,9 @@
                             {{ form.password.errors|join:", " }}
                         </div>
                     {% endif %}
+                    <div class="invalid-feedback" id="password-error">
+                        Password is required
+                    </div>
                 </div>
                 
                 <!-- Non-field errors -->
@@ -66,4 +72,46 @@
         </div>
     </div>
 </div>
+
+<script>
+    function validateForm() {
+        let isValid = true;
+        const username = document.getElementById('id_username');
+        const password = document.getElementById('id_password');
+        
+        // Reset previous error states
+        username.classList.remove('is-invalid');
+        password.classList.remove('is-invalid');
+        
+        // Validate username
+        if (!username.value.trim()) {
+            username.classList.add('is-invalid');
+            document.getElementById('username-error').style.display = 'block';
+            isValid = false;
+        }
+        
+        // Validate password
+        if (!password.value.trim()) {
+            password.classList.add('is-invalid');
+            document.getElementById('password-error').style.display = 'block';
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    // Initialize form validation on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('loginForm');
+        
+        // Add input event listeners to hide error messages when user starts typing
+        document.getElementById('id_username').addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+        
+        document.getElementById('id_password').addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
+</script>
 {% endblock %} 

@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
-from .forms import HostelApplicationForm, MaintenanceRequestForm, RoomAssignmentForm
+from .forms import HostelApplicationForm, MaintenanceRequestForm, RoomAssignmentForm, SemesterForm
 from .models import HostelApplication, MaintenanceRequest, Room, RoomAssignment, Semester, get_room_price, Payment
 from django import forms
 from datetime import date
 from django.forms import modelform_factory
+import datetime
 
 # Create your views here.
 
@@ -191,14 +192,26 @@ def list_semesters(request):
 @login_required
 @user_passes_test(lambda u: u.user_type in ['staff', 'admin'])
 def add_semester(request):
-    class SemesterForm(forms.ModelForm):
-        class Meta:
-            model = Semester
-            fields = ['name', 'is_active']
     if request.method == 'POST':
         form = SemesterForm(request.POST)
         if form.is_valid():
-            form.save()
+            semester = form.save(commit=False)
+            
+            # Combine date and time fields for application_start
+            app_start_date = form.cleaned_data['application_start']
+            app_start_time = form.cleaned_data['application_start_time']
+            semester.application_start = timezone.make_aware(
+                datetime.datetime.combine(app_start_date, app_start_time)
+            )
+            
+            # Combine date and time fields for application_end
+            app_end_date = form.cleaned_data['application_end']
+            app_end_time = form.cleaned_data['application_end_time']
+            semester.application_end = timezone.make_aware(
+                datetime.datetime.combine(app_end_date, app_end_time)
+            )
+            
+            semester.save()
             messages.success(request, 'Semester added successfully!')
             return redirect('hostel:list_semesters')
     else:
@@ -210,18 +223,37 @@ def add_semester(request):
 @user_passes_test(lambda u: u.user_type in ['staff', 'admin'])
 def edit_semester(request, semester_id):
     semester = get_object_or_404(Semester, id=semester_id)
-    class SemesterForm(forms.ModelForm):
-        class Meta:
-            model = Semester
-            fields = ['name', 'is_active']
+    
+    # Extract time components for the form
+    initial_data = {
+        'application_start_time': semester.application_start.time(),
+        'application_end_time': semester.application_end.time(),
+    }
+    
     if request.method == 'POST':
         form = SemesterForm(request.POST, instance=semester)
         if form.is_valid():
-            form.save()
+            semester = form.save(commit=False)
+            
+            # Combine date and time fields for application_start
+            app_start_date = form.cleaned_data['application_start']
+            app_start_time = form.cleaned_data['application_start_time']
+            semester.application_start = timezone.make_aware(
+                datetime.datetime.combine(app_start_date, app_start_time)
+            )
+            
+            # Combine date and time fields for application_end
+            app_end_date = form.cleaned_data['application_end']
+            app_end_time = form.cleaned_data['application_end_time']
+            semester.application_end = timezone.make_aware(
+                datetime.datetime.combine(app_end_date, app_end_time)
+            )
+            
+            semester.save()
             messages.success(request, 'Semester updated successfully!')
             return redirect('hostel:list_semesters')
     else:
-        form = SemesterForm(instance=semester)
+        form = SemesterForm(instance=semester, initial=initial_data)
     return render(request, 'hostel/semester_form.html', {'form': form, 'action': 'Edit'})
 
 @login_required

@@ -1,71 +1,279 @@
 {% extends 'accounts/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Register - MMU Hostel Management{% endblock %}
+{% block title %}Student Registration - MMU Hostel Management System{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
+    .required-field::after {
+        content: "*";
+        color: #dc3545;
+        margin-left: 4px;
+        font-weight: bold;
+    }
+    
+    .form-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card {
+        transition: transform 0.2s;
+        margin-bottom: 25px !important;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding: 12px 20px;
+    }
+    
+    .form-label {
+        font-weight: 500;
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+    }
+    
+    .btn-primary {
+        padding: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    .section-icon {
+        margin-right: 8px;
+    }
+    
+    .asterisk-note {
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+    
+    .invalid-feedback {
+        display: block;
+    }
+    
+    /* For local/international student specific fields */
+    .field-local, .field-international {
+        display: none;
+    }
+    
+    .field-local.active, .field-international.active {
+        display: block;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-7 col-lg-6">
-        <div class="form-container">
-            <h2 class="text-center mb-4">Student Registration</h2>
-            <p class="text-center text-danger mb-4">All fields are required <span class="text-danger">*</span></p>
-            <form method="post" novalidate id="registrationForm">
-                {% csrf_token %}
-                <!-- Account Info -->
-                <div class="card mb-4 shadow-sm border-0" style="background-color: #f0f7ff;">
-                    <div class="card-header bg-primary bg-opacity-75 text-white">Account Info</div>
-                    <div class="card-body">
-                        {{ form.first_name|as_crispy_field }}
-                        {{ form.last_name|as_crispy_field }}
-                        {{ form.email|as_crispy_field }}
-                        {{ form.password1|as_crispy_field }}
-                        {{ form.password2|as_crispy_field }}
-                    </div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Student Registration</h4>
                 </div>
-                <!-- Student Info -->
-                <div class="card mb-4 shadow-sm border-0" style="background-color: #f7faff;">
-                    <div class="card-header bg-info bg-opacity-75 text-white">Student Info</div>
-                    <div class="card-body">
-                        {{ form.student_type|as_crispy_field }}
-                        {{ form.student_id|as_crispy_field }}
-                        {{ form.id_number|as_crispy_field }}
-                        {{ form.gender|as_crispy_field }}
-                        {{ form.date_of_birth|as_crispy_field }}
-                    </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information Section -->
+                        <div class="section mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name *</label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name *</label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.gender.id_for_label }}" class="form-label">Gender *</label>
+                                    {{ form.gender }}
+                                    {% if form.gender.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.gender.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth *</label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.date_of_birth.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information Section -->
+                        <div class="section mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address *</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number *</label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="{{ form.emergency_contact.id_for_label }}" class="form-label">Emergency Contact *</label>
+                                    {{ form.emergency_contact }}
+                                    {% if form.emergency_contact.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.emergency_contact.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="{{ form.home_address.id_for_label }}" class="form-label">Home Address *</label>
+                                    {{ form.home_address }}
+                                    {% if form.home_address.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.home_address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Information Section -->
+                        <div class="section mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Student Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.student_type.id_for_label }}" class="form-label">Student Type *</label>
+                                    {{ form.student_type }}
+                                    {% if form.student_type.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.student_type.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.student_id.id_for_label }}" class="form-label">Student ID *</label>
+                                    {{ form.student_id }}
+                                    {% if form.student_id.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.student_id.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="{{ form.id_number.id_for_label }}" class="form-label">IC No. / Passport No. *</label>
+                                    {{ form.id_number }}
+                                    {% if form.id_number.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.id_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Security Section -->
+                        <div class="section mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Account Security</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password *</label>
+                                    {{ form.password1 }}
+                                    <div class="form-text">At least 8 characters with letters and numbers</div>
+                                    {% if form.password1.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password *</label>
+                                    {{ form.password2 }}
+                                    <div class="form-text">Enter the same password again</div>
+                                    {% if form.password2.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                        </div>
+                    </form>
                 </div>
-                <!-- Contact Info -->
-                <div class="card mb-4 shadow-sm border-0" style="background-color: #f7fff7;">
-                    <div class="card-header bg-success bg-opacity-75 text-white">Contact Info</div>
-                    <div class="card-body">
-                        {{ form.phone_number|as_crispy_field }}
-                        {{ form.emergency_contact|as_crispy_field }}
-                        {{ form.home_address|as_crispy_field }}
-                    </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Already have an account? <a href="{% url 'accounts:login' %}" class="text-decoration-none">Login here</a></p>
                 </div>
-                <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-primary">Register</button>
-                </div>
-            </form>
-            <div class="mt-3 text-center">
-                <span>Already have an account?</span>
-                <a href="{% url 'accounts:login' %}" class="text-decoration-none">Login here</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap Tooltip and DOB Autofill Script -->
+<style>
+.section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+.section h5 {
+    color: #0d6efd;
+    margin-bottom: 20px;
+}
+.form-label {
+    font-weight: 500;
+}
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+.invalid-feedback {
+    font-size: 0.875rem;
+}
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Only enable tooltips, no DOB autofill or readonly logic
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl, { trigger: 'hover' });
-        });
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Update ID number field label based on student type
+    const studentTypeSelect = document.querySelector('#{{ form.student_type.id_for_label }}');
+    const idNumberLabel = document.querySelector('label[for="{{ form.id_number.id_for_label }}"]');
+    const idNumberInput = document.querySelector('#{{ form.id_number.id_for_label }}');
+    const idNumberHelp = idNumberInput.nextElementSibling;
+
+    function updateIdNumberField() {
+        const selectedType = studentTypeSelect.value;
+        if (selectedType === 'local') {
+            idNumberLabel.textContent = 'IC No. *';
+            idNumberInput.placeholder = 'e.g., 990101-14-5678';
+            idNumberHelp.innerHTML = 'Format: YYMMDD-PB-XXXX (e.g., 990101-14-5678)';
+        } else if (selectedType === 'international') {
+            idNumberLabel.textContent = 'Passport No. *';
+            idNumberInput.placeholder = 'e.g., A1234567';
+            idNumberHelp.innerHTML = 'Enter your passport number (e.g., A1234567)';
+        }
+    }
+
+    studentTypeSelect.addEventListener('change', updateIdNumberField);
+    updateIdNumberField(); // Initial call to set the correct label
+});
 </script>
 {% endblock %} 

@@ -1,10 +1,12 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from .models import User
 import re
 from datetime import datetime
+from django.utils.translation import gettext_lazy as _
 
 GENDER_CHOICES = [
+    ('', '-- Select Gender --'),
     ('male', 'Male'),
     ('female', 'Female'),
 ]
@@ -19,81 +21,85 @@ class StudentRegistrationForm(UserCreationForm):
         max_length=30,
         required=True,
         label="First Name",
-        help_text="Enter your first name"
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., John'})
     )
     last_name = forms.CharField(
         max_length=30,
         required=True,
         label="Last Name",
-        help_text="Enter your last name"
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., Smith'})
     )
     
     student_type = forms.ChoiceField(
-        choices=User.STUDENT_TYPE_CHOICES,
-        help_text="Select your student type",
+        choices=[('', '-- Select Student Type --')] + list(User.STUDENT_TYPE_CHOICES),
         required=True,
-        widget=forms.Select(attrs={'class': 'form-control bg-light'})
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     student_id = forms.CharField(
         max_length=20,
-        help_text="Enter your University Student ID (e.g., A123456)",
         required=True,
-        label="Student ID"
+        label="Student ID",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., 1211109457 or 243WT256WL'})
     )
     
     id_number = forms.CharField(
         max_length=20,
-        help_text="If you are a local student, enter your Malaysian IC No. (e.g., 990101-14-5678). If international, enter your Passport No. (e.g., A1234567)",
         required=True,
-        label="IC No. / Passport No."
+        label="IC No. / Passport No.",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., 990101-14-5678 or A1234567'})
     )
     
     gender = forms.ChoiceField(
         choices=GENDER_CHOICES,
-        help_text="Select your gender (Male or Female)",
         required=True,
         label="Gender",
-        widget=forms.Select(attrs={'class': 'form-control bg-light'})
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     
     date_of_birth = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        help_text="For international students, enter your date of birth (e.g., 2001-01-01). For local students, enter your date of birth as per your IC.",
+        widget=forms.DateInput(attrs={
+            'type': 'date', 
+            'class': 'form-control',
+            'placeholder': 'YYYY-MM-DD'
+        }),
         label="Date of Birth"
     )
     
     phone_number = forms.CharField(
-        max_length=15,
-        help_text="Enter your Malaysian phone number (e.g., 012-3456789)",
-        required=True
+        max_length=20,
+        required=True,
+        label="Phone Number",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., +601110599609'})
     )
     
     emergency_contact = forms.CharField(
         max_length=100,
-        help_text="Name and phone number of emergency contact (e.g., Ali, 019-8765432)",
-        required=True
+        required=True,
+        label="Emergency Contact",
+        widget=forms.TextInput(attrs={'placeholder': 'e.g., Ali, +601110599609'})
     )
     
     home_address = forms.CharField(
         max_length=255,
-        widget=forms.Textarea(attrs={'rows': 2}),
-        help_text="Enter your home address (e.g., 123, Jalan Example, 43000 Kajang, Selangor)",
+        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Your permanent home address'}),
         required=True,
         label="Home Address"
     )
     
     email = forms.EmailField(
         required=True,
-        label="Email address",
-        widget=forms.EmailInput(attrs={'class': 'form-control'})
+        label="Email Address",
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'e.g., john@example.com'
+        })
     )
     
     class Meta:
         model = User
         fields = [
-            'username',
             'first_name',
             'last_name',
             'email',
@@ -111,11 +117,16 @@ class StudentRegistrationForm(UserCreationForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Remove username field help text
+        if 'username' in self.fields:
+            del self.fields['username']
+            
+        # Update password help texts to be more user-friendly
+        self.fields['password1'].help_text = 'At least 8 characters with letters and numbers'
+        self.fields['password2'].help_text = 'Enter the same password again'
+        
+        # Add Bootstrap classes for consistent styling
         for field_name, field in self.fields.items():
-            field.help_text = ''
-            if field.required:
-                field.label_suffix = ' <span class="text-danger">*</span>'
-            # Add Bootstrap class for consistent styling
             if field.widget.__class__.__name__ != 'CheckboxInput':
                 existing_classes = field.widget.attrs.get('class', '')
                 field.widget.attrs['class'] = (existing_classes + ' form-control').strip()
@@ -176,6 +187,7 @@ class StudentRegistrationForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
+        user.username = self.cleaned_data['student_id'].upper()  # Use student_id as username
         user.user_type = User.STUDENT
         user.student_id = self.cleaned_data['student_id'].upper()
         user.student_type = self.cleaned_data['student_type']
@@ -258,4 +270,53 @@ class StaffRegistrationForm(UserCreationForm):
         user.user_type = User.STAFF
         if commit:
             user.save()
-        return user 
+        return user
+
+
+class StudentAuthenticationForm(AuthenticationForm):
+    """
+    Custom authentication form that uses Student ID instead of username
+    """
+    username = forms.CharField(
+        label=_("Student ID"),
+        widget=forms.TextInput(attrs={'autofocus': True}),
+        error_messages={
+            'required': _('Please enter your Student ID'),
+        }
+    )
+    
+    password = forms.CharField(
+        label=_("Password"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+        error_messages={
+            'required': _('Please enter your password'),
+        }
+    )
+    
+    error_messages = {
+        'invalid_login': _(
+            "Please enter a correct Student ID and password. Note that both fields may be case-sensitive."
+        ),
+        'inactive': _("This account is inactive."),
+    }
+
+class StudentPasswordResetForm(PasswordResetForm):
+    """
+    Custom password reset form that validates the email exists in our system
+    """
+    email = forms.EmailField(
+        label=_("Email"),
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'autocomplete': 'email',
+            'class': 'form-control',
+            'placeholder': 'Enter your registered email'
+        })
+    )
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not User.objects.filter(email__iexact=email, is_active=True).exists():
+            raise forms.ValidationError(_("We couldn't find an account with that email address. Please check and try again."))
+        return email 

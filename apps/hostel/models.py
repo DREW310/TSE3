@@ -1,16 +1,43 @@
 from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.contrib.auth import get_user_model
 from apps.accounts.models import User
+
+User = get_user_model()
 
 # Create your models here.
 
 # Model to store semester info
 class Semester(models.Model):
     name = models.CharField(max_length=30, unique=True)  # e.g., "2023/2024, Trimester 1"
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(default=timezone.now)
+    application_start = models.DateTimeField(default=timezone.now)
+    application_end = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
+
+    def is_application_open(self):
+        """Check if applications are currently open for this semester"""
+        now = timezone.now()
+        return (
+            self.is_active and 
+            self.application_start <= now <= self.application_end
+        )
+        
+    def is_application_future(self):
+        """Check if applications will open in the future"""
+        now = timezone.now()
+        return self.application_start > now
+        
+    def is_application_closed(self):
+        """Check if applications are closed"""
+        now = timezone.now()
+        return now > self.application_end
 
 # Model to store hostel applications submitted by students
 class HostelApplication(models.Model):

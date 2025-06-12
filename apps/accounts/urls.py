@@ -3,6 +3,8 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from . import views
+from django.utils.translation import gettext_lazy as _
+from .forms import StudentAuthenticationForm, StudentPasswordResetForm
 
 # This helps Django identify our app in URL patterns
 app_name = 'accounts'
@@ -15,7 +17,8 @@ urlpatterns = [
     path('register/staff/', login_required(views.staff_register), name='staff_register'),
     path('login/', auth_views.LoginView.as_view(
         template_name='accounts/login.html',
-        redirect_authenticated_user=True
+        redirect_authenticated_user=True,
+        authentication_form=StudentAuthenticationForm,
     ), name='login'),
     path('logout/', auth_views.LogoutView.as_view(
         next_page='accounts:login'
@@ -34,7 +37,9 @@ urlpatterns = [
             template_name='accounts/password_reset.html',
             email_template_name='accounts/password_reset_email.html',
             subject_template_name='accounts/password_reset_subject.txt',
-            success_url=reverse_lazy('accounts:password_reset_done')
+            success_url=reverse_lazy('accounts:password_reset_done'),
+            form_class=StudentPasswordResetForm,
+            html_email_template_name='accounts/password_reset_email_html.html',
         ),
         name='password_reset'
     ),
