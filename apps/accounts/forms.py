@@ -206,49 +206,33 @@ class StudentRegistrationForm(UserCreationForm):
 class ProfileUpdateForm(forms.ModelForm):
     """
     Form for updating user profile information
-    This is simpler than the registration form since we don't need password fields
+    Only phone number, emergency contact, and home address are editable
     """
-    first_name = forms.CharField(
-        max_length=30,
+    phone_number = forms.CharField(
+        max_length=20,
         required=True,
-        label="First Name",
-        help_text="Enter your first name"
+        label="Phone Number",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., +601110599609'})
     )
-    last_name = forms.CharField(
-        max_length=30,
+    emergency_contact = forms.CharField(
+        max_length=100,
         required=True,
-        label="Last Name",
-        help_text="Enter your last name"
+        label="Emergency Contact",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Ali, +601110599609'})
+    )
+    home_address = forms.CharField(
+        max_length=255,
+        required=True,
+        label="Home Address",
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
     )
     class Meta:
         model = User
         fields = [
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'student_type',
-            'student_id',
-            'id_number',
-            'gender',
-            'date_of_birth',
             'phone_number',
             'emergency_contact',
             'home_address',
         ]
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make all fields required for profile completion
-        for field in self.fields:
-            self.fields[field].required = True
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.first_name = self.cleaned_data['first_name']
-        user.last_name = self.cleaned_data['last_name']
-        if commit:
-            user.save()
-        return user
 
 
 class StaffRegistrationForm(UserCreationForm):

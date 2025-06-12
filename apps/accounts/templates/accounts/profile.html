@@ -14,7 +14,6 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Username:</strong> {{ user.username }}</p>
                             <p><strong>Student ID:</strong> {{ user.student_id }}</p>
                         </div>
                         <div class="col-md-6">
@@ -26,75 +25,101 @@
             </div>
             
             <!-- Profile update form -->
-            <div class="card shadow-sm border-0 mb-4" style="background-color: #f7faff;">
-                <div class="card-header bg-primary bg-opacity-75 text-white">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white">
                     Update Your Profile
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <strong>Note:</strong> Only <span class="text-success">highlighted fields</span> are editable. All other information is read-only.
+                    </div>
                     <form method="post" novalidate>
                         {% csrf_token %}
+                        
                         <!-- Account Info -->
                         <div class="card mb-4 shadow-sm border-0" style="background-color: #f0f7ff;">
                             <div class="card-header bg-primary bg-opacity-75 text-white">Account Info</div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.first_name|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.first_name }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.last_name|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.last_name }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="id_username" class="form-label">Username*</label>
-                                        <input type="text" class="form-control" id="id_username" value="{{ form.username.value }}" readonly>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.email|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" class="form-control bg-light" value="{{ user.email }}" readonly tabindex="-1">
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        
                         <!-- Student Info -->
                         <div class="card mb-4 shadow-sm border-0" style="background-color: #f7faff;">
                             <div class="card-header bg-info bg-opacity-75 text-white">Student Info</div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="id_student_id" class="form-label">Student ID*</label>
-                                        <input type="text" class="form-control" id="id_student_id" value="{{ form.student_id.value }}" readonly>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Student ID</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.student_id }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.student_type|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Student Type</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.get_student_type_display }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.id_number|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">ID Number</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.id_number }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.gender|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Gender</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.get_gender_display }}" readonly tabindex="-1">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        {{ form.date_of_birth|as_crispy_field }}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="text" class="form-control bg-light" value="{{ user.date_of_birth|date:'Y-m-d' }}" readonly tabindex="-1">
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="alert alert-warning mb-4">
+                            <strong>Need to update your name, email, or student information?</strong><br>
+                            Please contact the hostel admin at <a href="mailto:hosteladmin@mmu.edu.my">hosteladmin@mmu.edu.my</a> to assist you with changes to these fields.
+                        </div>
+                        
                         <!-- Contact Info -->
                         <div class="card mb-4 shadow-sm border-0" style="background-color: #f7fff7;">
-                            <div class="card-header bg-success bg-opacity-75 text-white">Contact Info</div>
+                            <div class="card-header bg-success bg-opacity-75 text-white">Contact Info <span class="text-success">(Editable)</span></div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        {{ form.phone_number|as_crispy_field }}
+                                        <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number<span class="text-danger">*</span></label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        {{ form.emergency_contact|as_crispy_field }}
+                                        <label for="{{ form.emergency_contact.id_for_label }}" class="form-label">Emergency Contact<span class="text-danger">*</span></label>
+                                        {{ form.emergency_contact }}
+                                        {% if form.emergency_contact.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.emergency_contact.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-12 mb-3">
-                                        {{ form.home_address|as_crispy_field }}
+                                        <label for="{{ form.home_address.id_for_label }}" class="form-label">Home Address<span class="text-danger">*</span></label>
+                                        {{ form.home_address }}
+                                        {% if form.home_address.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.home_address.errors.0 }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        
                         <div class="d-grid gap-2 mt-3">
                             <button type="submit" class="btn btn-primary btn-lg">Update Profile</button>
                         </div>
