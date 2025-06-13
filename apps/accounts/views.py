@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .forms import StudentRegistrationForm, ProfileUpdateForm, StaffRegistrationForm
+from django.utils import timezone
 
 def student_register(request):
     """
@@ -73,7 +74,7 @@ def student_dashboard(request):
     Student dashboard view
     Shows overview of student's hostel status, applications, etc.
     """
-    from apps.hostel.models import RoomAssignment, Payment
+    from apps.hostel.models import RoomAssignment, Payment, Semester
     
     # Find the latest room assignment linked to an approved application
     latest_assignment = RoomAssignment.objects.filter(
@@ -84,21 +85,60 @@ def student_dashboard(request):
 
     # Fetch payments related to the latest assignment
     payments = []
+    payment_status = 'pending'
     if latest_assignment:
         payments = Payment.objects.filter(room_assignment=latest_assignment).order_by('-date_paid')
+        # Check if any payment is completed
+        if payments.filter(status='completed').exists():
+            payment_status = 'completed'
 
     # Count active maintenance requests
     active_maintenance_requests_count = request.user.maintenance_requests.filter(
         status__in=['pending', 'in_progress']
     ).count()
+    
+    # Check if there are any active application periods
+    now = timezone.now()
+    active_application_period = Semester.objects.filter(
+        is_active=True,
+        application_start__lte=now,
+        application_end__gte=now
+    ).exists()
+    
+    # Get the latest application
+    latest_application = request.user.hostel_applications.order_by('-date_applied').first()
+    
+    # Check if the student has any pending/approved applications
+    has_active_application = request.user.hostel_applications.filter(
+        status__in=['pending', 'approved']
+    ).exists()
+    
+    has_other_active_application = False
+    if latest_application and latest_application.status == 'rejected':
+        # Check if the student has any other pending or approved applications
+        has_other_active_application = request.user.hostel_applications.filter(
+            status__in=['pending', 'approved']
+        ).exclude(id=latest_application.id).exists()
+    
+    # A student can apply again if:
+    # 1. The application period is active AND
+    # 2. They have no active applications OR their only application is rejected
+    can_apply_again = active_application_period and (not has_active_application or 
+                                                    (latest_application and 
+                                                     latest_application.status == 'rejected' and 
+                                                     not has_other_active_application))
 
     context = {
         'user': request.user,
-        'hostel_applications': request.user.hostel_applications.all(),
+        'hostel_applications': request.user.hostel_applications.all().order_by('-date_applied'),
         'maintenance_requests': request.user.maintenance_requests.all(),
         'active_maintenance_requests_count': active_maintenance_requests_count,
         'latest_assignment': latest_assignment,
         'payments': payments,
+        'payment_status': payment_status,
+        'active_application_period': active_application_period,
+        'can_apply_again': can_apply_again,
+        'has_other_active_application': has_other_active_application,
     }
     return render(request, 'accounts/dashboard.html', context)
 

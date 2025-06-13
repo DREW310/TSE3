@@ -18,7 +18,7 @@ class SemesterForm(forms.ModelForm):
     
     class Meta:
         model = Semester
-        fields = ['name', 'start_date', 'end_date', 'application_start', 'application_end', 'is_active']
+        fields = ['name', 'start_date', 'end_date', 'application_start', 'application_end', 'is_active', 'quota_single', 'quota_double']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -42,6 +42,14 @@ class SemesterForm(forms.ModelForm):
             }),
             'is_active': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
+            }),
+            'quota_single': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
+            }),
+            'quota_double': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0'
             })
         }
         help_texts = {
@@ -50,7 +58,9 @@ class SemesterForm(forms.ModelForm):
             'end_date': 'The date when the semester ends',
             'application_start': 'The date when students can start applying',
             'application_end': 'The last date students can submit applications',
-            'is_active': 'When checked, applications will be visible to students during the application period. If unchecked, applications will be hidden regardless of dates.'
+            'is_active': 'When checked, applications will be visible to students during the application period. If unchecked, applications will be hidden regardless of dates.',
+            'quota_single': 'Maximum number of single rooms available for this semester',
+            'quota_double': 'Maximum number of double rooms available for this semester (number of rooms, not students)'
         }
 
     def clean(self):
@@ -76,20 +86,16 @@ class HostelApplicationForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly', 'disabled': 'disabled'}),
         help_text='This is the estimated total price for your selection.'
     )
-    start_date = forms.DateField(
-        label='Start Date',
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        help_text='Select the date you want to start living in the hostel.'
-    )
-    end_date = forms.DateField(
-        label='End Date',
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-        help_text='Select the date you want to leave the hostel.'
+    special_requests = forms.CharField(
+        label='Special Requests',
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Any special requests? (optional)'}),
+        help_text='Let us know if you have any special requests (e.g. room preference, accessibility, etc.)'
     )
 
     class Meta:
         model = HostelApplication
-        fields = ['room_type', 'semester', 'start_date', 'end_date']
+        fields = ['room_type', 'semester', 'special_requests']
         widgets = {
             'room_type': forms.Select(attrs={
                 'class': 'form-control',
@@ -102,20 +108,40 @@ class HostelApplicationForm(forms.ModelForm):
                 'onchange': 'updatePrice()'
             })
         }
+        help_texts = {
+            'room_type': 'All rooms are non-airconditioned with shared bathrooms.',
+            'semester': 'If the semester you want is not listed, please contact staff.'
+        }
     
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['semester'].queryset = Semester.objects.filter(is_active=True)
-        self.fields['semester'].help_text = 'If the semester you want is not listed, please contact staff.'
+        # Only show active semesters with open applications
+        now = timezone.now()
+        self.fields['semester'].queryset = Semester.objects.filter(
+            is_active=True,
+            application_start__lte=now,
+            application_end__gte=now
+        )
+        self.fields['room_type'].empty_label = "Select room type"
+        self.fields['semester'].empty_label = "Select semester"
         self.fields['price'].initial = ''
+        
+        # Store user for validation
+        self.user = user
 
-    def clean(self):
-        cleaned_data = super().clean()
-        start_date = cleaned_data.get('start_date')
-        end_date = cleaned_data.get('end_date')
-        if start_date and end_date and end_date <= start_date:
-            self.add_error('end_date', 'End date must be after start date.')
-        return cleaned_data
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.user:
+            instance.student = self.user
+        # Set start and end dates from semester
+        semester = self.cleaned_data['semester']
+        instance.start_date = semester.start_date
+        instance.end_date = semester.end_date
+        instance.special_requests = self.cleaned_data.get('special_requests', '')
+        if commit:
+            instance.save()
+        return instance
 
 class MaintenanceRequestForm(forms.ModelForm):
     class Meta:

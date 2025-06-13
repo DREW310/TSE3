@@ -21,7 +21,34 @@
                                 <span class="badge bg-danger">Rejected</span>
                             {% endif %}
                         </p>
+                        {% if application.status == 'rejected' %}
+                            {% if application.is_auto_rejected %}
+                                <div class="alert alert-danger">
+                                    <strong>Auto-Rejection:</strong> {{ application.rejection_reason }}
+                                </div>
+                            {% else %}
+                                <p><strong>Rejection Reason:</strong> {{ application.rejection_reason|default:"No reason provided" }}</p>
+                            {% endif %}
+                            
+                            {% if can_apply_again %}
+                                <div class="alert alert-info mt-3">
+                                    <p>You can submit a new application as the application period is still open.</p>
+                                    <a href="{% url 'hostel:apply' %}" class="btn btn-primary mt-2">Apply Again</a>
+                                </div>
+                            {% elif active_application_period and has_other_active_application %}
+                                <div class="alert alert-warning mt-3">
+                                    <p>You already have another pending or approved application. You cannot submit another application at this time.</p>
+                                </div>
+                            {% elif not active_application_period %}
+                                <div class="alert alert-secondary mt-3">
+                                    <p>The application period is currently closed. Please check back later when a new application period opens.</p>
+                                </div>
+                            {% endif %}
+                        {% endif %}
                         <p class="text-muted"><strong>Date Applied:</strong> {{ application.date_applied|date:"F j, Y, g:i a" }}</p>
+                        {% if application.special_requests %}
+                            <p><strong>Special Requests:</strong> {{ application.special_requests }}</p>
+                        {% endif %}
                     </div>
                 </div>
             {% else %}

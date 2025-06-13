@@ -17,7 +17,7 @@
                 </div>
                 <div class="card-body">
                     {% if user.hostel_applications.exists %}
-                        {% with application=user.hostel_applications.first %}
+                        {% with application=user.hostel_applications.last %}
                             <p><strong>Status:</strong> 
                                 <span class="badge {% if application.status == 'approved' %}bg-success
                                                  {% elif application.status == 'rejected' %}bg-danger
@@ -28,10 +28,46 @@
                             <p><strong>Room Type:</strong> {{ application.get_room_type_display }}</p>
                             <p><strong>Semester:</strong> {{ application.semester }}</p>
                             <p><strong>Date Applied:</strong> {{ application.date_applied|date:"M d, Y" }}</p>
+                            
+                            {% if application.status == 'rejected' %}
+                                {% if application.is_auto_rejected %}
+                                    <div class="alert alert-danger">
+                                        <strong>Auto-Rejection:</strong> {{ application.rejection_reason }}
+                                    </div>
+                                    {% if can_apply_again %}
+                                        <a href="{% url 'hostel:apply' %}" class="btn btn-primary mt-2">Apply for Different Room</a>
+                                    {% endif %}
+                                {% else %}
+                                    <p><strong>Rejection Reason:</strong> {{ application.rejection_reason|default:"No reason provided" }}</p>
+                                    {% if can_apply_again %}
+                                        <a href="{% url 'hostel:apply' %}" class="btn btn-primary mt-2">Apply Again</a>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% if not can_apply_again %}
+                                    {% if has_other_active_application %}
+                                        <p class="text-muted">You already have another pending or approved application.</p>
+                                    {% elif not active_application_period %}
+                                        <p class="text-muted">The application period is currently closed. Please check back later.</p>
+                                    {% endif %}
+                                {% endif %}
+                            {% elif application.status == 'approved' and not latest_assignment %}
+                                <p class="text-muted">Your application has been approved. Room assignment is pending.</p>
+                            {% endif %}
+                            <div class="mt-3">
+                                <a href="{% url 'hostel:my_application' %}" class="btn btn-outline-primary">View Details</a>
+                                
+                            </div>
                         {% endwith %}
                     {% else %}
-                        <p class="text-muted">You haven't applied for hostel accommodation yet.</p>
-                        <a href="{% url 'hostel:apply' %}" class="btn btn-primary">Apply Now</a>
+                        {% if active_application_period %}
+                            <p class="text-muted">You haven't applied for hostel accommodation yet.</p>
+                            <p class="text-muted">The hostel application period is currently open.</p>
+                            <a href="{% url 'hostel:apply' %}" class="btn btn-primary">Apply Now</a>
+                        {% else %}
+                            <p class="text-muted">You haven't applied for hostel accommodation yet.</p>
+                            <p class="text-muted">The application period is currently closed. Please check back later.</p>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -60,7 +96,7 @@
                 <div class="card-body">
                     {% if payments %}
                         {% with latest_payment=payments.first %}
-                            {% if latest_payment.status == 'paid' %}
+                            {% if payment_status == 'completed' %}
                                 <p><strong>Status:</strong> <span class="badge bg-success">Paid</span></p>
                                 <p><strong>Amount:</strong> RM{{ latest_payment.amount|floatformat:2 }}</p>
                                 <p class="text-muted">Payment received on {{ latest_payment.date_paid|date:"M d, Y" }}.</p>
@@ -78,6 +114,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <div class="col-md-6 mb-4">
             <div class="card h-100">
@@ -89,29 +126,23 @@
                         {% if requests %}
                             <p><strong>Active Requests:</strong> {{ active_maintenance_requests_count }}</p>
                             <p><strong>Latest Request Date:</strong> {{ requests.first.date_submitted|date:"M d, Y" }}</p>
-                            <a href="{% url 'hostel:my_maintenance_requests' %}" class="btn btn-warning text-dark">View All Requests</a>
+                            
                         {% else %}
                             <p class="text-muted">No maintenance requests found.</p>
+                            
                         {% endif %}
-                        {# Assuming maintenance requests are tied to having an assignment #}
-                        <a href="{% url 'hostel:submit_maintenance_request' %}" class="btn btn-warning text-dark mt-2">Submit New Request</a>
+                        
+                        {% if latest_assignment and payment_status == 'completed' %}
+                            <a href="{% url 'hostel:submit_maintenance_request' %}" class="btn btn-warning text-dark mt-2">Submit New Request</a>
+                        {% elif latest_assignment %}
+                            <p class="text-muted mt-2">You can submit maintenance requests after your payment is completed.</p>
+                        {% else %}
+                            <p class="text-muted mt-2">You need an active room assignment to submit maintenance requests.</p>
+                        {% endif %}
                     {% endwith %}
                 </div>
             </div>
         </div>
-        {% else %}
-        {# Optional: Display a message if no room is assigned yet #}
-        <div class="col-md-12 mb-4">
-             <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">Hostel Status</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted">Your approved application is awaiting room assignment. Please check back later or contact staff for updates.</p>
-                </div>
-            </div>
-        </div>
-        {% endif %}
     {% else %}
         <!-- Admin/Staff Dashboard Content -->
         <div class="col-md-6 mb-4">
@@ -123,9 +154,14 @@
                     {% with pending_apps=hostel_applications|filter_status:"pending" %}
                         {% if pending_apps %}
                             <p><strong>Pending Applications:</strong> {{ pending_apps.count }}</p>
-                            <a href="{% url 'hostel:all_applications' %}" class="btn btn-primary">View All Applications</a>
+                            <div class="mt-3">
+                                <a href="{% url 'hostel:all_applications' %}" class="btn btn-primary">Verify Applications</a>
+                            </div>
                         {% else %}
                             <p class="text-muted">No pending applications.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'hostel:all_applications' %}" class="btn btn-primary">Verify Applications</a>
+                            </div>
                         {% endif %}
                     {% endwith %}
                 </div>
@@ -142,9 +178,14 @@
                         {% if requests %}
                             <p><strong>Active Requests:</strong> {{ requests.count }}</p>
                             <p><strong>Latest Request:</strong> {{ requests.first.date_submitted|date:"M d, Y" }}</p>
-                            <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-warning text-dark">View All Requests</a>
+                            <div class="mt-3">
+                                <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-warning text-dark">View Maintenance Requests</a>
+                            </div>
                         {% else %}
                             <p class="text-muted">No maintenance requests found.</p>
+                            <div class="mt-3">
+                                <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-warning text-dark">View Maintenance Requests</a>
+                            </div>
                         {% endif %}
                     {% endwith %}
                 </div>
@@ -159,7 +200,10 @@
                 <div class="card-body">
                     <!-- This will be populated when we implement the room management feature -->
                     <p class="text-muted">Room occupancy information will appear here.</p>
-                    <a href="{% url 'hostel:list_rooms' %}" class="btn btn-success">Manage Rooms</a>
+                    <div class="mt-3">
+                        <a href="{% url 'hostel:list_rooms' %}" class="btn btn-success">Manage Rooms</a>
+                        <a href="{% url 'hostel:room_statistics' %}" class="btn btn-outline-success">Room Statistics</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -176,23 +220,14 @@
             </div>
         </div>
         
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title mb-0">Quick Actions</h5>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Payment Management</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
-                            <a href="{% url 'hostel:all_applications' %}" class="btn btn-outline-primary d-block">Verify Applications</a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-outline-warning d-block">View Maintenance Requests</a>
-                        </div>
-                        <div class="col-md-4 mb-2">
-                            <a href="#" class="btn btn-outline-info d-block">Post Announcement</a>
-                        </div>
-                    </div>
+                    <p class="text-muted">Update payment status for students who have paid at the counter.</p>
+                    <a href="{% url 'hostel:manage_payments' %}" class="btn btn-success">Manage Payments</a>
                 </div>
             </div>
         </div>

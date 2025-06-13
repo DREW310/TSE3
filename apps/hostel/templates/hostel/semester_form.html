@@ -118,7 +118,7 @@
                     </div>
                 </div>
                 
-                <!-- Activation Status -->
+                <!-- Visibility Settings -->
                 <div class="card mb-4">
                     <div class="card-header bg-light">
                         <h6 class="mb-0">Visibility Settings</h6>
@@ -136,6 +136,44 @@
                         </div>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> <strong>Important:</strong> Even when active, applications will only be visible to students between the application start and end dates/times. If inactive, applications will be hidden regardless of dates.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Room Quotas -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">Room Quotas</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_quota_single" class="form-label fw-bold">Single Room Quota</label>
+                                    {{ form.quota_single }}
+                                    {% if form.quota_single.help_text %}
+                                        <div class="form-text text-muted">{{ form.quota_single.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.quota_single.errors %}
+                                        <div class="text-danger small">{{ form.quota_single.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="id_quota_double" class="form-label fw-bold">Double Room Quota</label>
+                                    {{ form.quota_double }}
+                                    {% if form.quota_double.help_text %}
+                                        <div class="form-text text-muted">{{ form.quota_double.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.quota_double.errors %}
+                                        <div class="text-danger small">{{ form.quota_double.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> <strong>Note:</strong> These quotas determine how many applications can be approved for each room type. Applications will be auto-rejected when quotas are reached.
                         </div>
                     </div>
                 </div>

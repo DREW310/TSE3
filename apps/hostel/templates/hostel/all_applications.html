@@ -6,7 +6,23 @@
     <h2 class="mb-4">All Hostel Applications</h2>
     <div class="mb-3">
         <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="{% url 'hostel:list_rooms' %}" class="btn btn-info ms-2">View Room Assignments</a>
     </div>
+    <form method="get" class="mb-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <label for="semesterFilter" class="col-form-label">Filter by Semester:</label>
+            </div>
+            <div class="col-auto">
+                <select name="semester" id="semesterFilter" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Semesters</option>
+                    {% for sem in semesters %}
+                        <option value="{{ sem.id }}" {% if selected_semester == sem.id %}selected{% endif %}>{{ sem.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </form>
     {% if applications %}
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
@@ -18,6 +34,8 @@
                     <th>Trimester</th>
                     <th>Status</th>
                     <th>Date Applied</th>
+                    <th>Special Requests</th>
+                    <th>Rejection Reason</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -38,25 +56,19 @@
                         </span>
                     </td>
                     <td>{{ app.date_applied|date:"M d, Y H:i" }}</td>
+                    <td>{{ app.special_requests|default:'-' }}</td>
+                    <td>{% if app.status == 'rejected' %}{{ app.rejection_reason|default:'-' }}{% else %}-{% endif %}</td>
                     <td>
-                        {% if app.status == 'pending' %}
-                            <form method="post" action="{% url 'hostel:manage_application' app.id %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
-                                <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
-                            </form>
-                            <a href="{% url 'hostel:delete_application' app.id %}" class="btn btn-outline-danger btn-sm ms-1">Delete</a>
-                        {% elif app.status == 'approved' %}
-                            {% if has_assignment %}
-                                <span class="text-success">Room Assigned</span>
-                            {% else %}
-                                <a href="{% url 'hostel:assign_room' app.id %}" class="btn btn-info btn-sm">Assign Room</a>
+                        <div class="d-flex flex-column gap-2">
+                            <a href="{% url 'hostel:manage_application' app.id %}" class="btn btn-primary btn-sm">Review</a>
+                            {% if app.status == 'approved' %}
+                                {% if has_assignment %}
+                                    <span class="badge bg-success">Room Assigned</span>
+                                {% else %}
+                                    <a href="{% url 'hostel:assign_room' app.id %}" class="btn btn-info btn-sm">Assign Room</a>
+                                {% endif %}
                             {% endif %}
-                            <a href="{% url 'hostel:delete_application' app.id %}" class="btn btn-outline-danger btn-sm ms-1">Delete</a>
-                        {% else %}
-                            <span class="text-muted">No actions</span>
-                            <a href="{% url 'hostel:delete_application' app.id %}" class="btn btn-outline-danger btn-sm ms-1">Delete</a>
-                        {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endwith %}

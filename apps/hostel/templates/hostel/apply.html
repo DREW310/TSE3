@@ -13,6 +13,30 @@
                 <strong>Student ID:</strong> {{ request.user.student_id }}<br>
                 <strong>Type:</strong> {{ request.user.get_student_type_display|default:request.user.student_type|title }}
             </div>
+
+            <!-- Room Rates Info -->
+            <div class="alert alert-secondary mb-3">
+                <h5 class="alert-heading">Room Rates (per day)</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Local Students:</strong>
+                        <ul class="mb-0">
+                            <li>Single Room: RM 15</li>
+                            <li>Double Room: RM 10</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>International Students:</strong>
+                        <ul class="mb-0">
+                            <li>Single Room: RM 25</li>
+                            <li>Double Room: RM 16</li>
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <small class="mb-0">Note: All rooms are non-airconditioned with shared bathrooms.</small>
+            </div>
+
             {% if already_applied %}
                 <div class="alert alert-warning text-center">You already have a pending or approved hostel application. You cannot submit another application at this time.</div>
                 <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
@@ -34,17 +58,29 @@
                 <div class="mb-3">
                     {{ form.semester|as_crispy_field }}
                 </div>
-                <div class="mb-3">
-                    {{ form.start_date|as_crispy_field }}
+
+                <!-- Semester Duration Info -->
+                <div class="mb-3" id="semesterInfo" style="display: none;">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Stay Duration</h6>
+                        <div>Start Date: <span id="semesterStart"></span></div>
+                        <div>End Date: <span id="semesterEnd"></span></div>
+                        <div>Total Days: <span id="totalDays"></span></div>
+                        <small class="d-block mt-2">Note: Hostel stay is for the entire semester duration.</small>
+                    </div>
                 </div>
+
+                <!-- Special Requests Field -->
                 <div class="mb-3">
-                    {{ form.end_date|as_crispy_field }}
+                    {{ form.special_requests|as_crispy_field }}
                 </div>
+
                 <div class="mb-3">
                     <label for="id_price" class="form-label" aria-label="Estimated Total Price (RM)">Estimated Total Price (RM)</label>
-                    <input type="text" id="id_price" class="form-control" value="" readonly disabled placeholder="Select room type, trimester, and dates">
-                    <div class="form-text" id="priceHelp">Select room type, trimester, and dates to see the estimated price.</div>
+                    <input type="text" id="id_price" class="form-control" value="" readonly disabled placeholder="Select room type and semester">
+                    <div class="form-text" id="priceHelp">Select room type and semester to see the estimated total price.</div>
                 </div>
+
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" class="btn btn-primary" id="submitBtn">Submit Application</button>
                     <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
@@ -63,12 +99,15 @@
         </div>
     </div>
 </div>
+
 <script>
 // Set student type from backend
 window.studentType = "{{ request.user.student_type|escapejs }}";
+window.semesterData = {{ semester_data|safe }};
 </script>
+
 <script>
-// Price calculation logic (must match backend get_room_price)
+// Price calculation logic
 const rates = {
     'local': {'single': 15, 'double': 10},
     'international': {'single': 25, 'double': 16},
@@ -78,25 +117,43 @@ function getStudentType() {
     return window.studentType || 'local';
 }
 
+function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('en-MY', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
 function updatePrice() {
     const roomType = document.getElementById('id_room_type').value;
     const semesterSelect = document.getElementById('id_semester');
-    const semesterText = semesterSelect.options[semesterSelect.selectedIndex]?.text || '';
+    const semesterId = semesterSelect.value;
     const studentType = getStudentType();
-    const startDate = document.getElementById('id_start_date').value;
-    const endDate = document.getElementById('id_end_date').value;
     let price = '';
-    let helpMsg = 'Select room type, trimester, and dates to see the estimated price.';
-    if (roomType && semesterText && startDate && endDate) {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const days = Math.max(0, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
-        if (rates[studentType] && rates[studentType][roomType] && days > 0) {
+    let helpMsg = 'Select room type and semester to see the estimated total price.';
+
+    // Update semester info
+    const semesterInfo = document.getElementById('semesterInfo');
+    if (semesterId && window.semesterData) {
+        const semester = window.semesterData[semesterId];
+        if (semester) {
+            document.getElementById('semesterStart').textContent = formatDate(semester.start_date);
+            document.getElementById('semesterEnd').textContent = formatDate(semester.end_date);
+            const days = Math.ceil((new Date(semester.end_date) - new Date(semester.start_date)) / (1000 * 60 * 60 * 24)) + 1;
+            document.getElementById('totalDays').textContent = days;
+            semesterInfo.style.display = 'block';
+
+            if (roomType && rates[studentType] && rates[studentType][roomType]) {
             price = rates[studentType][roomType] * days;
-            helpMsg = `This is the estimated total price for your selection (${days} days).`;
+                helpMsg = `This is the total price for your ${days}-day stay.`;
+            }
         }
+    } else {
+        semesterInfo.style.display = 'none';
     }
-    document.getElementById('id_price').value = price ? price : '';
+
+    document.getElementById('id_price').value = price ? price.toFixed(2) : '';
     document.getElementById('priceHelp').innerText = helpMsg;
 }
 
@@ -104,8 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updatePrice();
     document.getElementById('id_room_type').addEventListener('change', updatePrice);
     document.getElementById('id_semester').addEventListener('change', updatePrice);
-    document.getElementById('id_start_date').addEventListener('change', updatePrice);
-    document.getElementById('id_end_date').addEventListener('change', updatePrice);
+
     // Spinner on submit
     const form = document.getElementById('hostelAppForm');
     if (form) {

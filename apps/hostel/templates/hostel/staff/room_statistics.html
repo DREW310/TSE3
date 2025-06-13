@@ -1,0 +1,285 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Room Statistics - MMU Hostel Management{% endblock %}
+
+{% block extra_head %}
+<!-- Include Chart.js for charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+    // Check if Chart.js is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded!');
+            alert('Chart.js failed to load. Please check your internet connection.');
+        } else {
+            console.log('Chart.js is loaded successfully!');
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Room Statistics and Reports</h2>
+    
+    <!-- Static Summary Table -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Room Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Room Type</th>
+                                    <th>Total Rooms</th>
+                                    <th>Total Capacity</th>
+                                    <th>Available Rooms</th>
+                                    <th>Preference Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Single Rooms</td>
+                                    <td>10</td>
+                                    <td>10</td>
+                                    <td>8</td>
+                                    <td>60%</td>
+                                </tr>
+                                <tr>
+                                    <td>Double Rooms</td>
+                                    <td>10</td>
+                                    <td>20</td>
+                                    <td>15</td>
+                                    <td>40%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Room Type Preference Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Room Type Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="roomPreferenceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Room Availability Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Room Availability</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="roomAvailabilityChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Room Statistics Table -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Detailed Room Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Room Type</th>
+                                    <th>Total Rooms</th>
+                                    <th>Total Capacity</th>
+                                    <th>Current Occupancy</th>
+                                    <th>Available Spots</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Single Rooms</td>
+                                    <td>{{ single_rooms }}</td>
+                                    <td>{{ total_single_capacity }}</td>
+                                    <td>{{ current_single_occupancy }}</td>
+                                    <td>{{ available_single }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Double Rooms</td>
+                                    <td>{{ double_rooms }}</td>
+                                    <td>{{ total_double_capacity }}</td>
+                                    <td>{{ current_double_occupancy }}</td>
+                                    <td>{{ available_double }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Debug Information -->
+                    <div class="mt-4">
+                        <h6>Debug Information:</h6>
+                        <p><strong>Single Rooms:</strong> {{ single_rooms|default:"0" }}</p>
+                        <p><strong>Double Rooms:</strong> {{ double_rooms|default:"0" }}</p>
+                        <p><strong>Single Applications:</strong> {{ single_applications|default:"0" }}</p>
+                        <p><strong>Double Applications:</strong> {{ double_applications|default:"0" }}</p>
+                        <p><strong>Active Semesters:</strong> {{ semester_data|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if semester_data %}
+    <div class="row">
+        <!-- Semester Quota Statistics -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Semester Quota Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Semester</th>
+                                    <th>Single Room Quota</th>
+                                    <th>Single Room Approved</th>
+                                    <th>Single Room Remaining</th>
+                                    <th>Double Room Quota</th>
+                                    <th>Double Room Approved</th>
+                                    <th>Double Room Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for semester in semester_data %}
+                                <tr>
+                                    <td>{{ semester.name }}</td>
+                                    <td>{{ semester.quota_single }}</td>
+                                    <td>{{ semester.approved_single }}</td>
+                                    <td>{{ semester.remaining_single_quota }}</td>
+                                    <td>{{ semester.quota_double }}</td>
+                                    <td>{{ semester.approved_double }}</td>
+                                    <td>{{ semester.remaining_double_quota }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Debug data
+    console.log("Single rooms:", {{ single_rooms|default:0 }});
+    console.log("Double rooms:", {{ double_rooms|default:0 }});
+    console.log("Single applications:", {{ single_applications|default:0 }});
+    console.log("Double applications:", {{ double_applications|default:0 }});
+    console.log("Total single capacity:", {{ total_single_capacity|default:0 }});
+    console.log("Total double capacity:", {{ total_double_capacity|default:0 }});
+    console.log("Current single occupancy:", {{ current_single_occupancy|default:0 }});
+    console.log("Current double occupancy:", {{ current_double_occupancy|default:0 }});
+    console.log("Available single:", {{ available_single|default:0 }});
+    console.log("Available double:", {{ available_double|default:0 }});
+    
+    // Room Preference Chart
+    var preferenceCtx = document.getElementById('roomPreferenceChart').getContext('2d');
+    var preferenceChart = new Chart(preferenceCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Single Rooms', 'Double Rooms'],
+            datasets: [{
+                data: [10, 15], // Static data for testing
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Room Type Preferences from Applications'
+                }
+            }
+        }
+    });
+
+    // Room Availability Chart
+    var availabilityCtx = document.getElementById('roomAvailabilityChart').getContext('2d');
+    var availabilityChart = new Chart(availabilityCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Single Rooms', 'Double Rooms'],
+            datasets: [
+                {
+                    label: 'Total Capacity',
+                    data: [20, 30], // Static data for testing
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Current Occupancy',
+                    data: [5, 10], // Static data for testing
+                    backgroundColor: 'rgba(255, 159, 64, 0.7)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Available Spots',
+                    data: [15, 20], // Static data for testing
+                    backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                },
+                title: {
+                    display: true,
+                    text: 'Room Availability Statistics'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 

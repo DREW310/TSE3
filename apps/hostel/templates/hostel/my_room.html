@@ -10,7 +10,26 @@
             <p><strong>Room Number:</strong> {{ assignment.room.room_number }}</p>
             <p><strong>Room Type:</strong> {{ assignment.room.get_room_type_display }}</p>
             <p><strong>Assignment Period:</strong> {{ assignment.start_date }} to {{ assignment.end_date }}</p>
-            <p><strong>Payment Status:</strong> <span class="badge {% if assignment.payment_status == 'paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ assignment.get_payment_status_display }}</span></p>
+            {% if assignment.room.room_type == 'double' %}
+                <p><strong>Roommate(s):</strong>
+                    {% if roommates %}
+                        <ul>
+                        {% for mate in roommates %}
+                            <li>{{ mate.student.get_full_name|default:mate.student.username }} ({{ mate.student.student_id }})</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span class="text-muted">No roommate assigned yet.</span>
+                    {% endif %}
+                </p>
+            {% endif %}
+            {% if payment %}
+                <p><strong>Payment Amount:</strong> RM {{ payment.amount }}</p>
+                <p><strong>Payment Status:</strong> <span class="badge {% if payment.status == 'completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ payment.get_status_display }}</span></p>
+                <p><strong>Payment Method:</strong> Cash (Counter)</p>
+            {% else %}
+                <p><strong>Payment:</strong> <span class="text-muted">No payment record found.</span></p>
+            {% endif %}
         </div>
     </div>
     {% else %}

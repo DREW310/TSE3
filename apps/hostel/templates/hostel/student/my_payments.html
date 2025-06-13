@@ -24,15 +24,14 @@
                         <p class="mb-0">All payments must be made at the hostel counter during check-in. Please ensure you have the following ready:</p>
                         <ul class="mt-2 mb-0">
                             <li>Valid student ID card</li>
-                            <li>Payment amount in cash or Touch 'n Go</li>
+                            <li>Payment amount in cash</li>
                             <li>Completed check-in form</li>
                         </ul>
                     </div>
                     <div class="mt-3">
                         <h6>Payment Methods Accepted:</h6>
                         <ul>
-                            <li>Cash</li>
-                            <li>Touch 'n Go</li>
+                            <li>Cash only</li>
                         </ul>
                     </div>
                 </div>
@@ -117,78 +116,41 @@
         <div class="col">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Payment History</h5>
+                    <h5 class="mb-0">Payment History by Semester</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Verified By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for payment in page_obj %}
-                                <tr>
-                                    <td>RM{{ payment.amount }}</td>
-                                    <td>
-                                        <span class="badge {% if payment.payment_status == 'pending' %}bg-warning{% elif payment.payment_status == 'completed' %}bg-success{% elif payment.payment_status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
-                                            {{ payment.get_payment_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>{{ payment.payment_date|date:"d M Y, h:i A" }}</td>
-                                    <td>
-                                        {% if payment.staff_verified %}
-                                        {{ payment.staff_verified.get_full_name }}
-                                        <br>
-                                        <small class="text-muted">{{ payment.verification_date|date:"d M Y, h:i A" }}</small>
-                                        {% else %}
-                                        -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'hostel:payment_detail' payment.id %}" 
-                                           class="btn btn-sm btn-info">
-                                            <i class="fas fa-receipt"></i> View Details
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5" class="text-center">No payment history found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    {% if page_obj.has_other_pages %}
-                    <nav aria-label="Page navigation" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}">Previous</a>
-                            </li>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
-                            </li>
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}">Next</a>
-                            </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
+                    {% if payments_by_semester %}
+                        {% for semester, payments in payments_by_semester.items %}
+                        <h6 class="mt-3">{{ semester.name }}</h6>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Period</th>
+                                        <th>Payment Method</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                    <tr>
+                                        <td>RM{{ payment.amount }}</td>
+                                        <td>
+                                            <span class="badge {% if payment.status == 'pending' %}bg-warning{% elif payment.status == 'completed' %}bg-success{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                {{ payment.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ payment.payment_period_start|date:"d M Y" }} - {{ payment.payment_period_end|date:"d M Y" }}</td>
+                                        <td>{{ payment.get_payment_method_display }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">No payment history found.</div>
                     {% endif %}
                 </div>
             </div>

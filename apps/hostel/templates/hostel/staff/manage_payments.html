@@ -1,0 +1,102 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Manage Student Payments - MMU Hostel Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Student Payments</h2>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Filter Payments</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Payment Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="refunded" {% if status == 'refunded' %}selected{% endif %}>Refunded</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="semester" class="form-label">Semester</label>
+                    <select name="semester" id="semester" class="form-select">
+                        <option value="">All Semesters</option>
+                        {% for sem in semesters %}
+                        <option value="{{ sem.id }}" {% if semester == sem.id|stringformat:"i" %}selected{% endif %}>{{ sem.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'hostel:manage_payments' %}" class="btn btn-secondary">Reset Filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Student Payments</h5>
+        </div>
+        <div class="card-body">
+            {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Student ID</th>
+                            <th>Room</th>
+                            <th>Amount</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.student.get_full_name }}</td>
+                            <td>{{ payment.student.student_id }}</td>
+                            <td>{{ payment.room_assignment.room.room_number }}</td>
+                            <td>RM {{ payment.amount }}</td>
+                            <td>{{ payment.payment_period_start|date:"d M Y" }} - {{ payment.payment_period_end|date:"d M Y" }}</td>
+                            <td>
+                                <span class="badge {% if payment.status == 'pending' %}bg-warning{% elif payment.status == 'completed' %}bg-success{% elif payment.status == 'refunded' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ payment.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if payment.status == 'pending' %}
+                                <form method="post" action="{% url 'hostel:update_payment_status' payment.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Mark this payment as completed?')">
+                                        Mark as Paid
+                                    </button>
+                                </form>
+                                {% elif payment.status == 'completed' %}
+                                <form method="post" action="{% url 'hostel:update_payment_status' payment.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="refunded">
+                                    <button type="submit" class="btn btn-sm btn-info" onclick="return confirm('Mark this payment as refunded?')">
+                                        Mark as Refunded
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No payments found matching your criteria.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

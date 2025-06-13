@@ -12,14 +12,145 @@
             <p><strong>Trimester:</strong> {{ application.semester.name }}</p>
             <p><strong>Status:</strong> <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ application.get_status_display }}</span></p>
             <p><strong>Date Applied:</strong> {{ application.date_applied|date:"M d, Y H:i" }}</p>
+            <p><strong>Special Requests:</strong> {{ application.special_requests|default:'-' }}</p>
         </div>
     </div>
+    
+    <!-- Room Availability Information -->
+    <div class="card mb-3">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Room Availability Status</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Single Room Status:</h6>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Quota
+                            <span class="badge bg-primary rounded-pill">{{ quota_single }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Approved Applications
+                            <span class="badge bg-secondary rounded-pill">{{ approved_single }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Remaining Quota
+                            <span class="badge {% if remaining_single > 0 %}bg-success{% else %}bg-danger{% endif %} rounded-pill">{{ remaining_single }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Available Rooms
+                            <span class="badge {% if available_single_rooms > 0 %}bg-success{% else %}bg-danger{% endif %} rounded-pill">{{ available_single_rooms }}</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>Double Room Status:</h6>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Total Quota (Students)
+                            <span class="badge bg-primary rounded-pill">{{ quota_double }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Approved Applications
+                            <span class="badge bg-secondary rounded-pill">{{ approved_double }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Remaining Quota
+                            <span class="badge {% if remaining_double > 0 %}bg-success{% else %}bg-danger{% endif %} rounded-pill">{{ remaining_double }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Available Spots
+                            <span class="badge {% if available_double_rooms > 0 %}bg-success{% else %}bg-danger{% endif %} rounded-pill">{{ available_double_rooms }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            {% if application.status == 'pending' %}
+                {% if not can_approve %}
+                    <div class="alert alert-danger">
+                        <strong>Note:</strong> {{ approval_blocked_reason }}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    
     {% if application.status == 'pending' %}
+    <div class="mb-3">
+        {% if not can_approve %}
+            <div class="alert alert-danger mb-3">
+                <strong>Note:</strong> {{ approval_blocked_reason }}
+            </div>
+            <a href="#" class="btn btn-success disabled" aria-disabled="true">Approve</a>
+        {% else %}
+            <a href="{% url 'hostel:approve_application' application.id %}" class="btn btn-success">Approve</a>
+        {% endif %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject</button>
+        <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Cancel</a>
+    </div>
     <form method="post">
         {% csrf_token %}
-        <button type="submit" name="action" value="approve" class="btn btn-success">Approve</button>
-        <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
-        <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Cancel</a>
+        <!-- Reject Modal -->
+        <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="rejectionReason" class="form-label">Rejection Reason</label>
+                  <input type="text" class="form-control" id="rejectionReason" name="rejection_reason" placeholder="Enter reason for rejection" required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" name="action" value="reject" class="btn btn-danger">Reject</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </form>
+    {% elif application.status == 'approved' %}
+    <div class="alert alert-success mb-3">
+        This application has been approved.
+    </div>
+    <div class="mb-3">
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">Reject Approval</button>
+        <a href="{% url 'hostel:all_applications' %}" class="btn btn-secondary">Back to Applications</a>
+        {% if not has_assignment %}
+            <a href="{% url 'hostel:assign_room' application.id %}" class="btn btn-primary">Assign Room</a>
+        {% endif %}
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <!-- Reject Modal -->
+        <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="rejectModalLabel">Reject Approved Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Warning:</strong> Rejecting an approved application will free up the quota for other students.
+                </div>
+                <div class="mb-3">
+                  <label for="rejectionReason" class="form-label">Rejection Reason</label>
+                  <input type="text" class="form-control" id="rejectionReason" name="rejection_reason" placeholder="Enter reason for rejection (e.g., Student changed mind)" required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Approval</button>
+              </div>
+            </div>
+          </div>
+        </div>
     </form>
     {% else %}
     <div class="alert alert-info">This application has already been {{ application.get_status_display|lower }}.</div>

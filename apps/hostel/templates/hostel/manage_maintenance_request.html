@@ -38,6 +38,13 @@
 
                             <dt class="col-sm-3">Date Submitted:</dt>
                             <dd class="col-sm-9">{{ maintenance_request.date_submitted|date:"M d, Y H:i" }}</dd>
+
+                            {% if maintenance_request.status == 'completed' %}
+                                <dt class="col-sm-3">Completed By:</dt>
+                                <dd class="col-sm-9">{{ maintenance_request.completed_by.get_full_name|default:'-' }}</dd>
+                                <dt class="col-sm-3">Completed At:</dt>
+                                <dd class="col-sm-9">{{ maintenance_request.completed_at|date:"M d, Y H:i" }}</dd>
+                            {% endif %}
                         </dl>
                     </div>
 
@@ -62,6 +69,9 @@
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Update Request</button>
+                            {% if maintenance_request.status != 'completed' %}
+                                <button type="submit" name="status" value="completed" class="btn btn-success">Mark as Completed</button>
+                            {% endif %}
                             <a href="{% url 'hostel:all_maintenance_requests' %}" class="btn btn-secondary">Back to All Requests</a>
                         </div>
                     </form>

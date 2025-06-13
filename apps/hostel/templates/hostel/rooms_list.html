@@ -7,6 +7,7 @@
     <div class="mb-3">
         <a href="{% url 'hostel:add_room' %}" class="btn btn-primary">Add New Room</a>
         <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        <a href="{% url 'hostel:update_room_statuses' %}" class="btn btn-warning">Update Room Statuses</a>
     </div>
     {% if rooms %}
     <div class="table-responsive">
@@ -32,6 +33,50 @@
                     <td>
                         <a href="{% url 'hostel:edit_room' room.id %}" class="btn btn-sm btn-info">Edit</a>
                         <a href="{% url 'hostel:delete_room' room.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this room?');">Delete</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="padding:0;">
+                        {% with assignments=room|all_active_assignments %}
+                        {% if assignments %}
+                        <div class="p-2">
+                            <strong>Assigned Students:</strong>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Student ID</th>
+                                            <th>Period</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assign in assignments %}
+                                        <tr>
+                                            <td>{{ assign.student.get_full_name|default:assign.student.username }}</td>
+                                            <td>{{ assign.student.student_id }}</td>
+                                            <td>{{ assign.start_date|date:'M d, Y' }} - {{ assign.end_date|date:'M d, Y' }}</td>
+                                            <td>
+                                                {% now "Y-m-d" as today_date %}
+                                                {% if assign.start_date|date:"Y-m-d" <= today_date and assign.end_date|date:"Y-m-d" >= today_date %}
+                                                    <span class="badge bg-success">Current</span>
+                                                {% elif assign.start_date|date:"Y-m-d" > today_date %}
+                                                    <span class="badge bg-info">Upcoming</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Past</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="p-2 text-muted">No students assigned.</div>
+                        {% endif %}
+                        {% endwith %}
                     </td>
                 </tr>
                 {% endfor %}

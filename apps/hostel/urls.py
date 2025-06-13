@@ -22,6 +22,7 @@ urlpatterns = [
     path('semesters/edit/<int:semester_id>/', views.edit_semester, name='edit_semester'),
     path('semesters/delete/<int:semester_id>/', views.delete_semester, name='delete_semester'),
     path('applications/manage/<int:application_id>/', views.manage_application, name='manage_application'),
+    path('applications/approve/<int:application_id>/', views.approve_application, name='approve_application'),
     path('applications/assign-room/<int:application_id>/', views.assign_room, name='assign_room'),
     path('my-room/', views.my_room, name='my_room'),
     path('applications/delete/<int:application_id>/', views.delete_application, name='delete_application'),
@@ -29,4 +30,13 @@ urlpatterns = [
     path('rooms/add/', views.add_room, name='add_room'),
     path('rooms/edit/<int:room_id>/', views.edit_room, name='edit_room'),
     path('rooms/delete/<int:room_id>/', views.delete_room, name='delete_room'),
+    path('rooms/update-statuses/', views.update_room_statuses, name='update_room_statuses'),
+    
+    # Payment management URLs
+    path('payments/', views.my_payments, name='my_payments'),
+    path('payments/manage/', views.manage_payments, name='manage_payments'),
+    path('payments/update-status/<int:payment_id>/', views.update_payment_status, name='update_payment_status'),
+    
+    # Reports and statistics URLs
+    path('statistics/rooms/', views.room_statistics, name='room_statistics'),
 ] 

@@ -12,6 +12,28 @@
                     <a href="{% url 'hostel:submit_maintenance_request' %}" class="btn btn-light">Submit New Request</a>
                 </div>
                 <div class="card-body">
+                    <form method="get" class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="trimester" class="form-label">Trimester</label>
+                            <select name="trimester" id="trimester" class="form-select">
+                                <option value="">All</option>
+                                {% for t in trimesters %}
+                                    <option value="{{ t.id }}" {% if selected_trimester == t.id|stringformat:'s' %}selected{% endif %}>{{ t.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_from" class="form-label">From</label>
+                            <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request.GET.date_from }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_to" class="form-label">To</label>
+                            <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request.GET.date_to }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                        </div>
+                    </form>
                     {% if requests %}
                         <div class="table-responsive">
                             <table class="table table-hover">
