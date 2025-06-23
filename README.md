@@ -1,22 +1,48 @@
 # MMU Hostel Management System
 
-A web-based system for managing hostel accommodations at MMU, built with Django and Bootstrap 5.
+Hey there! This is our TSE6223 Software Engineering Fundamentals project for the MMU Hostel Management System. We've been working super hard on this throughout the semester. It's a web application built with Django that helps manage student hostel applications and room assignments.
 
-## Features
+## Group Information
+**Group Name:** Byte Me  
+**Lecture Section:** SE1  
+**Lab Section:** 1D  
 
-- Student hostel application and management
+### Team Members
+| Student ID | Student Name          |
+|------------|-----------------------|
+| 1211109457 | DO WAI LUNG           |
+| 1221305730 | DORIS HENG            | 
+| 1211111904 | ELDEENA LIM HUEY YINN |
+| 1211108301 | KONG YI XUAN          |
+
+## Project Overview
+
+We created this system to solve the problems we noticed with the current hostel application process. It was frustrating how manual everything was, so we wanted to make something that would make life easier for both students and staff.
+
+Our system has these main features:
+- Student hostel application portal
 - Admin dashboard for hostel management
-- Room allocation system
-- Payment tracking with QR code support
+- First-come-first-serve quota system for room assignments
+- Room occupancy tracking and statistics
 - Maintenance request system
-- Announcement system
 
-## Setup Instructions
+## What We Learned
+
+This project taught us so much! We struggled with Django at first (those models were confusing!), but eventually got the hang of it. We learned about:
+- Building web applications with Django
+- Creating user authentication systems
+- Database design and management
+- Working with Bootstrap for responsive design
+- Implementing business logic for hostel management
+
+The hardest part was probably setting up the quota system for room assignments. We had to make sure applications were processed in order and that the system would automatically reject applications when quotas were reached.
+
+## How to Run Our Project
 
 1. Clone the repository:
 ```bash
 git clone [repository-url]
-cd hostel-management
+cd TSE Project
 ```
 
 2. Create a virtual environment:
@@ -39,91 +65,69 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. Set up environment variables:
-Create a `.env` file in the project root with:
-```
-DEBUG=True
-SECRET_KEY=your-secret-key
-DATABASE_URL=postgresql://username:password@localhost:5432/hostel_db
-```
-
-6. Run migrations:
+5. Run migrations:
 ```bash
 python manage.py migrate
 ```
 
-7. Create a superuser:
+6. Create a superuser (for admin access):
 ```bash
 python manage.py createsuperuser
 ```
 
-8. Run the development server:
+7. Run the development server:
 ```bash
 python manage.py runserver
 ```
 
+8. Open your browser and go to:
+```
+http://127.0.0.1:8000/
+```
+
 ## Project Structure
 
-- `hostel_management/` - Main project directory
+Our project is organized like this:
+- `hostel_management/` - Main project settings
 - `apps/` - Django applications
   - `accounts/` - User authentication and profiles
   - `hostel/` - Hostel management features
-  - `payments/` - Payment processing
-  - `maintenance/` - Maintenance request system
-  - `announcements/` - Announcement system
 
-## Development Guidelines
+## User Types and Features
 
-### Version Control
-- Use meaningful commit messages
-- Create feature branches for new development
-- Follow the branching strategy:
-  - `main` - Production-ready code
-  - `develop` - Development branch
-  - `feature/*` - New features
-  - `bugfix/*` - Bug fixes
-  - `hotfix/*` - Urgent production fixes
+### Student Features
+- Apply for hostel accommodation
+- View application status
+- Submit maintenance requests
+- View room details and payment information
 
-### Code Style
-- Follow PEP 8 guidelines for Python code
-- Use meaningful variable and function names
-- Add docstrings for functions and classes
-- Keep functions small and focused
+### Staff/Admin Features
+- Process student applications
+- Manage room assignments
+- View room statistics and reports
+- Handle maintenance requests
 
-### Testing
-- Write tests for new features
-- Run tests before committing:
-```bash
-python manage.py test
-```
-- Maintain test coverage above 80%
+## Challenges We Faced
 
-### Ignored Files
-The following files and directories are ignored by git:
-- Python bytecode and cache files (`__pycache__/`, `*.pyc`, etc.)
-- Virtual environment (`venv/`)
-- Environment files (`.env`)
-- IDE-specific files (`.vscode/`, `.idea/`)
-- Database files (`*.sqlite3`, `*.db`)
-- Coverage reports (`htmlcov/`, `.coverage`)
-- Build and distribution files (`dist/`, `build/`)
-- Node modules (`node_modules/`)
+We ran into a bunch of issues during development:
+1. Getting the quota system to work correctly was tricky
+2. Figuring out how to handle room assignments efficiently
+3. Making sure the application process was fair and transparent
+4. Dealing with edge cases like what happens when a student cancels their application
 
-## Development Team
+It was a great learning experience figuring out solutions to these problems. We had to rewrite some parts of the code multiple times until we got it right.
 
-- [Your Name] - Project Lead
-- [Team Member 1] - Backend Developer
-- [Team Member 2] - Frontend Developer
-- [Team Member 3] - Database Designer
+## Future Improvements
 
-## Contributing
+If we had more time, we'd love to add:
+- Online payment integration
+- Mobile app version
+- Room selection map interface
+- Roommate matching system
+- Notification system for application status updates
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Conclusion
 
-## License
+This project was a great opportunity to apply what we've learned in class to a real-world problem. We're proud of what we've built and hope it can actually be implemented to help MMU students and staff with the hostel application process!
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+Thanks for checking out our project! :) 
